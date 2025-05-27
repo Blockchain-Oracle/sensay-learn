@@ -14,6 +14,7 @@ import {
   Globe,
   ArrowLeft,
 } from "lucide-react"
+import { DashboardStats } from "@/components/dashboard-stats"
 
 const learningModes = [
   {
@@ -123,13 +124,16 @@ export default function Dashboard() {
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
-        <div className="text-center mb-12">
+        <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-gray-900 mb-4">Choose Your Learning Adventure</h1>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
             Select from 10 specialized AI-powered learning modes designed to help you grow, learn, and achieve your
             goals through personalized conversations.
           </p>
         </div>
+
+        {/* Dashboard Stats */}
+        <DashboardStats />
 
         {/* Learning Modes Grid */}
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-7xl mx-auto">

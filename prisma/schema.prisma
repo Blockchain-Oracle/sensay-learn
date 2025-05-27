@@ -1,0 +1,553 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id                String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  privyId           String    @unique @map("privy_id")
+  email             String    @unique
+  displayName       String?   @map("display_name")
+  avatarUrl         String?   @map("avatar_url")
+  timezone          String    @default("UTC")
+  languagePreference String   @default("en") @map("language_preference")
+  createdAt         DateTime  @default(now()) @map("created_at")
+  updatedAt         DateTime  @default(now()) @updatedAt @map("updated_at")
+  lastActiveAt      DateTime  @default(now()) @map("last_active_at")
+
+  // Relations
+  preferences       UserPreferences?
+  learningProfiles  LearningProfile[]
+  studySessions     StudySession[]
+  studyGoals        StudyGoal[]
+  studyDocuments    StudyDocument[]
+  conceptMaps       ConceptMap[]
+  studyNotes        StudyNote[]
+  chatConversations ChatConversation[]
+  userProgress      UserProgress[]
+  mediaFiles        MediaFile[]
+  userAchievements  UserAchievement[]
+  languageProgress  LanguageProgress[]
+  userVocabulary    UserVocabulary[]
+  conversationSessions ConversationSession[]
+  pronunciationAssessments PronunciationAssessment[]
+  experimentSessions ExperimentSession[]
+  labReports        LabReport[]
+  quizAttempts      QuizAttempt[]
+  createdStudyGroups StudyGroup[] @relation("StudyGroupCreator")
+  studyGroupMemberships StudyGroupMember[]
+
+  @@map("users")
+}
+
+model UserPreferences {
+  id                   String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId               String  @unique @map("user_id") @db.Uuid
+  darkMode             Boolean @default(false) @map("dark_mode")
+  notificationsEnabled Boolean @default(true) @map("notifications_enabled")
+  emailNotifications   Boolean @default(true) @map("email_notifications")
+  voiceEnabled         Boolean @default(true) @map("voice_enabled")
+  accessibilitySettings Json   @default("{}") @map("accessibility_settings")
+  createdAt            DateTime @default(now()) @map("created_at")
+  updatedAt            DateTime @default(now()) @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_preferences")
+}
+
+model LearningProfile {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId       String   @map("user_id") @db.Uuid
+  learningMode String   @map("learning_mode")
+  level        String   @default("beginner")
+  preferences  Json     @default("{}")
+  goals        Json     @default("[]")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @default(now()) @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, learningMode])
+  @@map("learning_profiles")
+}
+
+// Study Buddy Models
+model StudySession {
+  id             String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId         String    @map("user_id") @db.Uuid
+  title          String
+  subject        String?
+  topic          String?
+  scheduledStart DateTime? @map("scheduled_start")
+  scheduledEnd   DateTime? @map("scheduled_end")
+  actualStart    DateTime? @map("actual_start")
+  actualEnd      DateTime? @map("actual_end")
+  status         String    @default("scheduled")
+  notes          String?
+  pomodoroCount  Int       @default(0) @map("pomodoro_count")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @default(now()) @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("study_sessions")
+}
+
+model StudyGoal {
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId      String    @map("user_id") @db.Uuid
+  title       String
+  description String?
+  targetDate  DateTime? @map("target_date")
+  priority    String    @default("medium")
+  progress    Int       @default(0)
+  status      String    @default("active")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @default(now()) @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("study_goals")
+}
+
+model StudyDocument {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId     String   @map("user_id") @db.Uuid
+  title      String
+  fileUrl    String?  @map("file_url")
+  fileType   String?  @map("file_type")
+  fileSize   BigInt?  @map("file_size")
+  summary    String?
+  keyPoints  Json     @default("[]") @map("key_points")
+  flashcards Json     @default("[]")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @default(now()) @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("study_documents")
+}
+
+model ConceptMap {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId       String   @map("user_id") @db.Uuid
+  title        String
+  subject      String?
+  mapData      Json     @map("map_data")
+  thumbnailUrl String?  @map("thumbnail_url")
+  isPublic     Boolean  @default(false) @map("is_public")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @default(now()) @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("concept_maps")
+}
+
+model StudyGroup {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name        String
+  description String?
+  subject     String?
+  createdBy   String   @map("created_by") @db.Uuid
+  inviteCode  String   @unique @map("invite_code")
+  isPrivate   Boolean  @default(true) @map("is_private")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at")
+
+  creator User               @relation("StudyGroupCreator", fields: [createdBy], references: [id], onDelete: Cascade)
+  members StudyGroupMember[]
+
+  @@map("study_groups")
+}
+
+model StudyGroupMember {
+  id       String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  groupId  String   @map("group_id") @db.Uuid
+  userId   String   @map("user_id") @db.Uuid
+  role     String   @default("member")
+  joinedAt DateTime @default(now()) @map("joined_at")
+
+  group StudyGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user  User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([groupId, userId])
+  @@map("study_group_members")
+}
+
+model StudyNote {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  title     String?
+  content   String
+  subject   String?
+  tags      Json     @default("[]")
+  isShared  Boolean  @default(false) @map("is_shared")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("study_notes")
+}
+
+// Science Lab Models
+model Experiment {
+  id                 String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  title              String
+  category           String
+  difficulty         String
+  durationMinutes    Int?     @map("duration_minutes")
+  description        String?
+  safetyGuidelines   Json     @default("[]") @map("safety_guidelines")
+  requiredEquipment  Json     @default("[]") @map("required_equipment")
+  procedureSteps     Json     @default("[]") @map("procedure_steps")
+  learningObjectives Json     @default("[]") @map("learning_objectives")
+  isActive           Boolean  @default(true) @map("is_active")
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @default(now()) @updatedAt @map("updated_at")
+
+  sessions ExperimentSession[]
+  quizzes  ExperimentQuiz[]
+
+  @@map("experiments")
+}
+
+model ExperimentSession {
+  id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId       String    @map("user_id") @db.Uuid
+  experimentId String    @map("experiment_id") @db.Uuid
+  status       String    @default("setup")
+  startedAt    DateTime? @map("started_at")
+  completedAt  DateTime? @map("completed_at")
+  variables    Json      @default("{}")
+  observations String?
+  conclusions  String?
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @default(now()) @updatedAt @map("updated_at")
+
+  user       User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  experiment Experiment       @relation(fields: [experimentId], references: [id], onDelete: Cascade)
+  dataPoints ExperimentData[]
+  labReports LabReport[]
+
+  @@map("experiment_sessions")
+}
+
+model ExperimentData {
+  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  sessionId       String   @map("session_id") @db.Uuid
+  timestampOffset Int      @map("timestamp_offset")
+  measurementType String   @map("measurement_type")
+  value           Decimal  @db.Decimal(10, 4)
+  unit            String
+  notes           String?
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  session ExperimentSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@map("experiment_data")
+}
+
+model LabReport {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  sessionId    String   @map("session_id") @db.Uuid
+  userId       String   @map("user_id") @db.Uuid
+  title        String?
+  hypothesis   String?
+  methodology  String?
+  results      String?
+  analysis     String?
+  conclusions  String?
+  reportUrl    String?  @map("report_url")
+  isShared     Boolean  @default(false) @map("is_shared")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @default(now()) @updatedAt @map("updated_at")
+
+  session ExperimentSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  user    User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("lab_reports")
+}
+
+model ExperimentQuiz {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  experimentId  String   @map("experiment_id") @db.Uuid
+  question      String
+  questionType  String   @default("multiple_choice") @map("question_type")
+  options       Json     @default("[]")
+  correctAnswer String   @map("correct_answer")
+  explanation   String?
+  difficulty    String   @default("medium")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  experiment Experiment    @relation(fields: [experimentId], references: [id], onDelete: Cascade)
+  attempts   QuizAttempt[]
+
+  @@map("experiment_quizzes")
+}
+
+model QuizAttempt {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId     String   @map("user_id") @db.Uuid
+  experimentId String @map("experiment_id") @db.Uuid
+  quizId     String   @map("quiz_id") @db.Uuid
+  userAnswer String   @map("user_answer")
+  isCorrect  Boolean  @map("is_correct")
+  timeTaken  Int      @map("time_taken")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  user User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  quiz ExperimentQuiz @relation(fields: [quizId], references: [id], onDelete: Cascade)
+
+  @@map("quiz_attempts")
+}
+
+// Language Coach Models
+model Language {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  code       String   @unique
+  name       String
+  nativeName String?  @map("native_name")
+  flagEmoji  String?  @map("flag_emoji")
+  isActive   Boolean  @default(true) @map("is_active")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  progress             LanguageProgress[]
+  vocabularyWords      VocabularyWord[]
+  conversationScenarios ConversationScenario[]
+  conversationSessions ConversationSession[]
+  culturalInsights     CulturalInsight[]
+  pronunciationAssessments PronunciationAssessment[]
+
+  @@map("languages")
+}
+
+model LanguageProgress {
+  id               String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId           String    @map("user_id") @db.Uuid
+  languageId       String    @map("language_id") @db.Uuid
+  level            String    @default("beginner")
+  speakingScore    Int       @default(0) @map("speaking_score")
+  listeningScore   Int       @default(0) @map("listening_score")
+  readingScore     Int       @default(0) @map("reading_score")
+  writingScore     Int       @default(0) @map("writing_score")
+  totalStudyTime   Int       @default(0) @map("total_study_time")
+  currentStreak    Int       @default(0) @map("current_streak")
+  longestStreak    Int       @default(0) @map("longest_streak")
+  lastPracticeDate DateTime? @map("last_practice_date")
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @default(now()) @updatedAt @map("updated_at")
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  language Language @relation(fields: [languageId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, languageId])
+  @@map("language_progress")
+}
+
+model VocabularyWord {
+  id                 String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  languageId         String   @map("language_id") @db.Uuid
+  word               String
+  translation        String
+  pronunciation      String?
+  category           String?
+  difficulty         String   @default("beginner")
+  audioUrl           String?  @map("audio_url")
+  exampleSentence    String?  @map("example_sentence")
+  exampleTranslation String?  @map("example_translation")
+  createdAt          DateTime @default(now()) @map("created_at")
+
+  language       Language         @relation(fields: [languageId], references: [id], onDelete: Cascade)
+  userVocabulary UserVocabulary[]
+
+  @@map("vocabulary_words")
+}
+
+model UserVocabulary {
+  id              String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId          String    @map("user_id") @db.Uuid
+  wordId          String    @map("word_id") @db.Uuid
+  masteryLevel    Int       @default(0) @map("mastery_level")
+  timesPracticed  Int       @default(0) @map("times_practiced")
+  timesCorrect    Int       @default(0) @map("times_correct")
+  lastPracticedAt DateTime? @map("last_practiced_at")
+  isFavorite      Boolean   @default(false) @map("is_favorite")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @default(now()) @updatedAt @map("updated_at")
+
+  user User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  word VocabularyWord @relation(fields: [wordId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, wordId])
+  @@map("user_vocabulary")
+}
+
+model ConversationScenario {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  languageId   String   @map("language_id") @db.Uuid
+  title        String
+  description  String?
+  difficulty   String
+  category     String
+  keyPhrases   Json     @default("[]") @map("key_phrases")
+  culturalNotes String? @map("cultural_notes")
+  isActive     Boolean  @default(true) @map("is_active")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  language Language              @relation(fields: [languageId], references: [id], onDelete: Cascade)
+  sessions ConversationSession[]
+
+  @@map("conversation_scenarios")
+}
+
+model ConversationSession {
+  id                String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId            String   @map("user_id") @db.Uuid
+  scenarioId        String   @map("scenario_id") @db.Uuid
+  languageId        String   @map("language_id") @db.Uuid
+  durationMinutes   Int?     @map("duration_minutes")
+  formalMode        Boolean  @default(false) @map("formal_mode")
+  pronunciationScore Int?    @map("pronunciation_score")
+  grammarScore      Int?     @map("grammar_score")
+  vocabularyScore   Int?     @map("vocabulary_score")
+  feedback          String?
+  createdAt         DateTime @default(now()) @map("created_at")
+
+  user     User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  scenario ConversationScenario @relation(fields: [scenarioId], references: [id], onDelete: Cascade)
+  language Language             @relation(fields: [languageId], references: [id], onDelete: Cascade)
+
+  @@map("conversation_sessions")
+}
+
+model CulturalInsight {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  languageId String   @map("language_id") @db.Uuid
+  title      String
+  content    String
+  category   String
+  mediaUrl   String?  @map("media_url")
+  isFeatured Boolean  @default(false) @map("is_featured")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  language Language @relation(fields: [languageId], references: [id], onDelete: Cascade)
+
+  @@map("cultural_insights")
+}
+
+model PronunciationAssessment {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId        String   @map("user_id") @db.Uuid
+  languageId    String   @map("language_id") @db.Uuid
+  text          String
+  audioUrl      String?  @map("audio_url")
+  accuracyScore Int?     @map("accuracy_score")
+  feedback      Json     @default("{}")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  language Language @relation(fields: [languageId], references: [id], onDelete: Cascade)
+
+  @@map("pronunciation_assessments")
+}
+
+// Shared Models
+model ChatConversation {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId       String   @map("user_id") @db.Uuid
+  learningMode String   @map("learning_mode")
+  contextId    String?  @map("context_id") @db.Uuid
+  title        String?
+  systemPrompt String?  @map("system_prompt")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @default(now()) @updatedAt @map("updated_at")
+
+  user     User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages ChatMessage[]
+
+  @@map("chat_conversations")
+}
+
+model ChatMessage {
+  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  conversationId String   @map("conversation_id") @db.Uuid
+  role           String
+  content        String
+  metadata       Json     @default("{}")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  conversation ChatConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@map("chat_messages")
+}
+
+model UserProgress {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId       String   @map("user_id") @db.Uuid
+  learningMode String   @map("learning_mode")
+  metricName   String   @map("metric_name")
+  metricValue  Decimal  @map("metric_value") @db.Decimal(10, 2)
+  date         DateTime @db.Date
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, learningMode, metricName, date])
+  @@map("user_progress")
+}
+
+model MediaFile {
+  id               String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId           String   @map("user_id") @db.Uuid
+  filename         String
+  originalFilename String   @map("original_filename")
+  fileType         String   @map("file_type")
+  fileSize         BigInt   @map("file_size")
+  storageUrl       String   @map("storage_url")
+  cdnUrl           String?  @map("cdn_url")
+  module           String?
+  contextId        String?  @map("context_id") @db.Uuid
+  isPublic         Boolean  @default(false) @map("is_public")
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("media_files")
+}
+
+model Achievement {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name         String
+  description  String?
+  iconUrl      String?  @map("icon_url")
+  learningMode String?  @map("learning_mode")
+  criteria     Json
+  points       Int      @default(0)
+  isActive     Boolean  @default(true) @map("is_active")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  userAchievements UserAchievement[]
+
+  @@map("achievements")
+}
+
+model UserAchievement {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId        String   @map("user_id") @db.Uuid
+  achievementId String   @map("achievement_id") @db.Uuid
+  earnedAt      DateTime @default(now()) @map("earned_at")
+
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  achievement Achievement @relation(fields: [achievementId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, achievementId])
+  @@map("user_achievements")
+}

@@ -1,44 +1,98 @@
 import { type NextRequest, NextResponse } from "next/server"
+import { generateChatResponse } from "@/lib/ai/openai"
+import { checkRateLimit, cacheAIResponse, getCachedAIResponse, cacheUserSession } from "@/lib/cache/upstash-redis"
+import { db } from "@/lib/db"
 
-export async function POST(req: NextRequest) {
+export async function POST(request: NextRequest) {
   try {
-    const { messages, systemPrompt } = await req.json()
+    const userId = request.headers.get("x-user-id")
+    if (!userId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
 
-    // This is a placeholder for AI API integration
-    // In a real implementation, you would integrate with an AI service like:
-    // - OpenAI GPT-4
-    // - Anthropic Claude
-    // - Google Gemini
-    // - Or any other AI provider
+    // Apply rate limiting
+    const { success, remaining, resetTime } = await checkRateLimit(`chat:${userId}`, 50, 3600)
+    if (!success) {
+      return NextResponse.json(
+        { error: "Rate limit exceeded", resetTime },
+        {
+          status: 429,
+          headers: {
+            "X-RateLimit-Remaining": remaining.toString(),
+            "X-RateLimit-Reset": resetTime.toString(),
+          },
+        },
+      )
+    }
 
-    // Example integration with OpenAI (commented out):
-    /*
-    const openai = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY,
-    })
+    const { messages, systemPrompt, conversationId, learningMode } = await request.json()
 
-    const response = await openai.chat.completions.create({
-      model: "gpt-4",
-      messages: [
-        { role: "system", content: systemPrompt },
-        ...messages
-      ],
-      stream: true,
-    })
+    if (!messages || !systemPrompt) {
+      return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
+    }
 
-    // Return streaming response
-    return new Response(response.body, {
-      headers: {
-        'Content-Type': 'text/plain; charset=utf-8',
+    // Check for cached AI response
+    const lastMessage = messages[messages.length - 1]?.content
+    const cacheKey = `${systemPrompt}:${lastMessage}`
+    let aiResponse = await getCachedAIResponse(cacheKey)
+
+    if (!aiResponse) {
+      // Generate new AI response
+      aiResponse = await generateChatResponse(messages, systemPrompt)
+
+      // Cache the response for future use
+      await cacheAIResponse(cacheKey, aiResponse, 3600)
+    }
+
+    // Save conversation and messages to database
+    let conversation
+    if (conversationId) {
+      conversation = await db.chatConversation.findUnique({
+        where: { id: conversationId, userId },
+      })
+    }
+
+    if (!conversation) {
+      conversation = await db.chatConversation.create({
+        data: {
+          userId,
+          learningMode: learningMode || "general",
+          systemPrompt,
+          title: messages[0]?.content?.substring(0, 50) + "..." || "New Conversation",
+        },
+      })
+    }
+
+    // Save user message
+    await db.chatMessage.create({
+      data: {
+        conversationId: conversation.id,
+        role: "user",
+        content: lastMessage || "",
       },
     })
-    */
 
-    // For now, return a placeholder response
+    // Save AI response
+    await db.chatMessage.create({
+      data: {
+        conversationId: conversation.id,
+        role: "assistant",
+        content: aiResponse,
+      },
+    })
+
+    // Cache user session data
+    await cacheUserSession(userId, {
+      lastActivity: new Date().toISOString(),
+      currentConversation: conversation.id,
+      learningMode,
+    })
+
     return NextResponse.json({
-      message: "AI API integration placeholder. Connect your preferred AI service here.",
-      systemPrompt: systemPrompt.substring(0, 100) + "...",
-      receivedMessages: messages.length,
+      message: aiResponse,
+      conversationId: conversation.id,
+      cached: !!aiResponse,
+      remaining,
     })
   } catch (error) {
     console.error("Chat API error:", error)
