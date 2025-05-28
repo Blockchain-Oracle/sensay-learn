@@ -26,13 +26,13 @@ Be professional yet supportive, and provide constructive feedback to help users 
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="bg-white shadow-sm border-b">
+      <header className="bg-white shadow-sm border-b sticky top-0 z-10">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center space-x-4">
             <Link href="/dashboard">
               <Button variant="ghost" size="sm">
                 <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Dashboard
+                Back
               </Button>
             </Link>
             <div className="flex items-center space-x-2">
@@ -44,15 +44,25 @@ Be professional yet supportive, and provide constructive feedback to help users 
       </header>
 
       {/* Main Content */}
-      <main className="container mx-auto px-4 py-6">
-        <ChatInterface
-          title="Career Simulation Assistant"
-          description="Practice job interviews, workplace scenarios, and professional skills in a safe, supportive environment."
-          icon={<Briefcase className="h-6 w-6 text-indigo-600" />}
-          systemPrompt={systemPrompt}
-          placeholderMessage="What career scenario would you like to practice?"
-          suggestedQuestions={suggestedQuestions}
-        />
+      <main className="container mx-auto px-4 py-4 md:py-6">
+        <div className="max-w-4xl mx-auto">
+          <div className="bg-indigo-50 border border-indigo-100 rounded-lg p-4 md:p-6 mb-6">
+            <h2 className="text-lg md:text-xl font-semibold text-indigo-800 mb-2">Practice Professional Situations</h2>
+            <p className="text-indigo-700 text-sm md:text-base">
+              Simulate real-world career scenarios like job interviews, workplace conversations, 
+              and professional presentations in a safe environment.
+            </p>
+          </div>
+          
+          <ChatInterface
+            title="Career Simulation Assistant"
+            description="Practice job interviews, workplace scenarios, and professional skills in a safe, supportive environment."
+            icon={<Briefcase className="h-6 w-6 text-indigo-600" />}
+            systemPrompt={systemPrompt}
+            placeholderMessage="What career scenario would you like to practice?"
+            suggestedQuestions={suggestedQuestions}
+          />
+        </div>
       </main>
     </div>
   )

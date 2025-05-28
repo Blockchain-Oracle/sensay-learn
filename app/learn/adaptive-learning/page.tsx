@@ -85,7 +85,7 @@ Always be inclusive, respectful, and focus on individual strengths and capabilit
     return (
       <div className="min-h-screen bg-gray-50">
         {/* Header */}
-        <header className="bg-white shadow-sm border-b">
+        <header className="bg-white shadow-sm border-b sticky top-0 z-10">
           <div className="container mx-auto px-4 py-4">
             <div className="flex items-center space-x-4">
               <Link href="/dashboard">
@@ -103,14 +103,14 @@ Always be inclusive, respectful, and focus on individual strengths and capabilit
         </header>
 
         {/* Onboarding */}
-        <div className="container mx-auto px-4 py-12">
+        <div className="container mx-auto px-4 py-8 md:py-12">
           <div className="max-w-4xl mx-auto text-center">
-            <h1 className="text-4xl font-bold text-gray-900 mb-6">Let's Personalize Your Learning Experience</h1>
-            <p className="text-lg text-gray-600 mb-12">
+            <h1 className="text-2xl md:text-4xl font-bold text-gray-900 mb-4 md:mb-6">Let's Personalize Your Learning Experience</h1>
+            <p className="text-base md:text-lg text-gray-600 mb-8 md:mb-12">
               Help us understand how you learn best so we can adapt our teaching style to your needs.
             </p>
 
-            <div className="grid md:grid-cols-2 gap-6 mb-12">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6 mb-8 md:mb-12">
               {learningStyles.map((style) => {
                 const IconComponent = style.icon
                 return (
@@ -123,11 +123,11 @@ Always be inclusive, respectful, and focus on individual strengths and capabilit
                   >
                     <CardHeader className="text-center">
                       <div
-                        className={`w-16 h-16 rounded-lg ${style.color} flex items-center justify-center mx-auto mb-4`}
+                        className={`w-12 h-12 md:w-16 md:h-16 rounded-lg ${style.color} flex items-center justify-center mx-auto mb-3 md:mb-4`}
                       >
-                        <IconComponent className="h-8 w-8" />
+                        <IconComponent className="h-6 w-6 md:h-8 md:w-8" />
                       </div>
-                      <CardTitle className="text-xl">{style.title}</CardTitle>
+                      <CardTitle className="text-lg md:text-xl">{style.title}</CardTitle>
                     </CardHeader>
                     <CardContent>
                       <p className="text-gray-600">{style.description}</p>
@@ -138,12 +138,12 @@ Always be inclusive, respectful, and focus on individual strengths and capabilit
             </div>
 
             {learningStyle && (
-              <div className="space-y-8">
+              <div className="space-y-6 md:space-y-8">
                 <Card className="max-w-2xl mx-auto">
                   <CardHeader>
                     <CardTitle className="text-xl">Additional Preferences</CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-6">
+                  <CardContent className="space-y-5">
                     <div>
                       <label className="text-sm font-medium mb-2 block">Reading Speed</label>
                       <Select value={readingSpeed} onValueChange={setReadingSpeed}>
@@ -176,7 +176,7 @@ Always be inclusive, respectful, and focus on individual strengths and capabilit
                   </CardContent>
                 </Card>
 
-                <Button size="lg" onClick={() => setHasCompletedOnboarding(true)} className="px-8 py-3">
+                <Button size="lg" onClick={() => setHasCompletedOnboarding(true)} className="px-6 md:px-8 py-2 md:py-3">
                   Start Learning
                 </Button>
               </div>
@@ -190,14 +190,14 @@ Always be inclusive, respectful, and focus on individual strengths and capabilit
   return (
     <div className={`min-h-screen ${highContrast ? "bg-black text-white" : "bg-gray-50"}`}>
       {/* Header */}
-      <header className={`${highContrast ? "bg-gray-900 border-gray-700" : "bg-white"} shadow-sm border-b`}>
+      <header className={`${highContrast ? "bg-gray-900 border-gray-700" : "bg-white"} shadow-sm border-b sticky top-0 z-10`}>
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <Link href="/dashboard">
                 <Button variant="ghost" size="sm">
                   <ArrowLeft className="h-4 w-4 mr-2" />
-                  Back to Dashboard
+                  Back
                 </Button>
               </Link>
               <div className="flex items-center space-x-2">
@@ -206,17 +206,24 @@ Always be inclusive, respectful, and focus on individual strengths and capabilit
               </div>
             </div>
 
-            <Badge className="bg-teal-100 text-teal-700">
+            <Badge className="bg-teal-100 text-teal-700 hidden sm:flex">
               {learningStyles.find((s) => s.id === learningStyle)?.title}
             </Badge>
           </div>
         </div>
       </header>
 
-      <div className="container mx-auto px-4 py-6">
-        <div className="grid grid-cols-12 gap-6 h-[calc(100vh-8rem)]">
+      <div className="container mx-auto px-4 py-4 md:py-6">
+        <div className="flex flex-col lg:grid lg:grid-cols-12 gap-4 md:gap-6">
+          {/* Mobile Accessibility Badge - only shown on mobile */}
+          <div className="lg:hidden w-full mb-2">
+            <Badge className="bg-teal-100 text-teal-700">
+              {learningStyles.find((s) => s.id === learningStyle)?.title}
+            </Badge>
+          </div>
+          
           {/* Left Panel - Accessibility Tools */}
-          <div className="col-span-3">
+          <div className="w-full lg:col-span-3 order-2 lg:order-1">
             <Card className={highContrast ? "bg-gray-900 border-gray-700" : ""}>
               <CardHeader>
                 <CardTitle className="text-lg">Accessibility Tools</CardTitle>
@@ -276,7 +283,7 @@ Always be inclusive, respectful, and focus on individual strengths and capabilit
           </div>
 
           {/* Center - Adaptive Chat */}
-          <div className="col-span-6">
+          <div className="w-full lg:col-span-6 order-1 lg:order-2">
             <Card className={highContrast ? "bg-gray-900 border-gray-700" : ""}>
               <CardHeader>
                 <CardTitle className="text-lg">Personalized Learning Assistant</CardTitle>
@@ -285,7 +292,7 @@ Always be inclusive, respectful, and focus on individual strengths and capabilit
                 </p>
               </CardHeader>
 
-              <div className="flex-1 px-6 pb-6" style={{ fontSize: `${fontSize[0]}px` }}>
+              <div className="flex-1 px-4 md:px-6 pb-6" style={{ fontSize: `${fontSize[0]}px` }}>
                 <ChatInterface
                   title=""
                   description=""
@@ -304,27 +311,29 @@ Always be inclusive, respectful, and focus on individual strengths and capabilit
           </div>
 
           {/* Right Panel - Feedback Bar */}
-          <div className="col-span-3">
+          <div className="w-full lg:col-span-3 order-3">
             <Card className={highContrast ? "bg-gray-900 border-gray-700" : ""}>
               <CardHeader>
                 <CardTitle className="text-lg">Learning Feedback</CardTitle>
                 <p className="text-sm text-gray-600">Help us adapt to your needs</p>
               </CardHeader>
               <CardContent className="space-y-3">
-                {feedbackOptions.map((option) => {
-                  const IconComponent = option.icon
-                  return (
-                    <Button
-                      key={option.id}
-                      variant="outline"
-                      className="w-full justify-start"
-                      onClick={() => handleFeedback(option.id)}
-                    >
-                      <IconComponent className="h-4 w-4 mr-2" />
-                      {option.label}
-                    </Button>
-                  )
-                })}
+                <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-col sm:space-y-2 lg:space-y-3">
+                  {feedbackOptions.map((option) => {
+                    const IconComponent = option.icon
+                    return (
+                      <Button
+                        key={option.id}
+                        variant="outline"
+                        className="w-full justify-start"
+                        onClick={() => handleFeedback(option.id)}
+                      >
+                        <IconComponent className="h-4 w-4 mr-2" />
+                        {option.label}
+                      </Button>
+                    )
+                  })}
+                </div>
               </CardContent>
             </Card>
 

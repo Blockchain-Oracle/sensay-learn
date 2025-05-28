@@ -15,6 +15,21 @@ import { EducationalContent } from "@/components/educational-content"
 import { useUserProgress, useAchievements } from "@/hooks/use-live-data"
 import { useAuth } from "@/hooks/use-auth"
 
+// Add interfaces for progress and achievement data
+interface ProgressData {
+  metricName: string;
+  metricValue: string | number;
+  timestamp?: string;
+}
+
+interface AchievementData {
+  achievement: {
+    name: string;
+    id: string;
+  };
+  earnedAt: string;
+}
+
 export default function AIMentorPage() {
   const { user } = useAuth()
   const userId = user?.id || ""
@@ -39,8 +54,8 @@ User level: ${userLevel}
 Be encouraging, patient, and insightful. Ask thoughtful questions to understand their goals and provide actionable advice.`
 
   // Process live data
-  const learningGoals = progress?.filter((p) => p.metricName === "learning_goals") || []
-  const weeklyProgress = progress?.filter((p) => p.metricName === "weekly_progress") || []
+  const learningGoals = progress?.filter((p: ProgressData) => p.metricName === "learning_goals") || []
+  const weeklyProgress = progress?.filter((p: ProgressData) => p.metricName === "weekly_progress") || []
   const recentAchievements = achievements?.slice(0, 3) || []
 
   const milestones = [
@@ -62,13 +77,13 @@ Be encouraging, patient, and insightful. Ask thoughtful questions to understand 
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="bg-white shadow-sm border-b">
+      <header className="bg-white shadow-sm border-b sticky top-0 z-10">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center space-x-4">
             <Link href="/dashboard">
               <Button variant="ghost" size="sm">
                 <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Dashboard
+                Back
               </Button>
             </Link>
             <div className="flex items-center space-x-2">
@@ -79,11 +94,11 @@ Be encouraging, patient, and insightful. Ask thoughtful questions to understand 
         </div>
       </header>
 
-      <div className="container mx-auto px-4 py-6">
-        <div className="grid grid-cols-12 gap-6 h-[calc(100vh-8rem)]">
+      <div className="container mx-auto px-4 py-4 md:py-6">
+        <div className="flex flex-col lg:grid lg:grid-cols-12 gap-4 md:gap-6">
           {/* Left Sidebar - Learning Goals */}
-          <div className="col-span-3">
-            <Card className="h-full">
+          <div className="w-full lg:col-span-3 order-2 lg:order-1">
+            <Card className="mb-4 lg:mb-0 lg:h-full">
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-lg">Learning Goals</CardTitle>
@@ -103,7 +118,7 @@ Be encouraging, patient, and insightful. Ask thoughtful questions to understand 
                     ))}
                   </div>
                 ) : learningGoals.length > 0 ? (
-                  learningGoals.map((goal, index) => (
+                  learningGoals.map((goal: ProgressData, index: number) => (
                     <div key={index} className="space-y-2">
                       <div className="flex items-center justify-between">
                         <span className="text-sm font-medium">{goal.metricName}</span>
@@ -126,7 +141,7 @@ Be encouraging, patient, and insightful. Ask thoughtful questions to understand 
           </div>
 
           {/* Center - AI Mentor Chat */}
-          <div className="col-span-6">
+          <div className="w-full lg:col-span-6 order-1 lg:order-2">
             <Tabs defaultValue="chat" className="h-full">
               <TabsList className="grid w-full grid-cols-3">
                 <TabsTrigger value="chat">AI Mentor</TabsTrigger>
@@ -137,17 +152,17 @@ Be encouraging, patient, and insightful. Ask thoughtful questions to understand 
               <TabsContent value="chat" className="mt-4 h-[calc(100%-3rem)]">
                 <Card className="h-full flex flex-col">
                   <CardHeader className="pb-4">
-                    <div className="flex items-center space-x-4">
-                      <Avatar className="h-16 w-16">
+                    <div className="flex flex-col sm:flex-row sm:items-center space-y-3 sm:space-y-0 sm:space-x-4">
+                      <Avatar className="h-14 w-14 sm:h-16 sm:w-16">
                         <AvatarImage src="/placeholder.svg?height=64&width=64" />
                         <AvatarFallback className="bg-purple-100 text-purple-600 text-xl">
-                          <Brain className="h-8 w-8" />
+                          <Brain className="h-7 w-7 sm:h-8 sm:w-8" />
                         </AvatarFallback>
                       </Avatar>
                       <div>
                         <h2 className="text-xl font-semibold">Alex - Your AI Mentor</h2>
                         <p className="text-sm text-gray-600">Ready to guide your learning journey</p>
-                        <div className="flex items-center space-x-2 mt-2">
+                        <div className="flex flex-wrap gap-2 mt-2">
                           <Badge variant="outline">Topic: {currentTopic}</Badge>
                           <Badge variant="outline">Level: {userLevel}</Badge>
                         </div>
@@ -155,7 +170,7 @@ Be encouraging, patient, and insightful. Ask thoughtful questions to understand 
                     </div>
                   </CardHeader>
 
-                  <div className="flex-1 px-6 pb-6">
+                  <div className="flex-1 px-4 md:px-6 pb-6">
                     <ChatInterface
                       title=""
                       description=""
@@ -190,7 +205,7 @@ Be encouraging, patient, and insightful. Ask thoughtful questions to understand 
           </div>
 
           {/* Right Panel - Milestones, Resources, Progress */}
-          <div className="col-span-3 space-y-4">
+          <div className="w-full lg:col-span-3 space-y-4 order-3">
             {/* Learning Milestones */}
             <Card>
               <CardHeader>
@@ -214,133 +229,139 @@ Be encouraging, patient, and insightful. Ask thoughtful questions to understand 
               </CardContent>
             </Card>
 
-            {/* Recent Achievements */}
-            {!achievementsLoading && recentAchievements.length > 0 && (
+            {/* Mobile-friendly layout: show side by side cards on mobile for quick access */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-4">
+              {/* Recent Achievements */}
+              {!achievementsLoading && recentAchievements.length > 0 && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg flex items-center">
+                      <Award className="h-5 w-5 mr-2 text-yellow-600" />
+                      Recent Achievements
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-2">
+                    {recentAchievements.map((achievement: AchievementData, index: number) => (
+                      <div key={index} className="flex items-center space-x-3 p-2 bg-yellow-50 rounded">
+                        <Award className="h-4 w-4 text-yellow-600" />
+                        <div className="flex-1">
+                          <p className="text-sm font-medium truncate">{achievement.achievement.name}</p>
+                          <p className="text-xs text-gray-500">{new Date(achievement.earnedAt).toLocaleDateString()}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Quick Resources */}
               <Card>
                 <CardHeader>
                   <CardTitle className="text-lg flex items-center">
-                    <Award className="h-5 w-5 mr-2 text-yellow-600" />
-                    Recent Achievements
+                    <BookOpen className="h-5 w-5 mr-2 text-blue-600" />
+                    Quick Resources
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-2">
-                  {recentAchievements.map((achievement, index) => (
-                    <div key={index} className="flex items-center space-x-3 p-2 bg-yellow-50 rounded">
-                      <Award className="h-4 w-4 text-yellow-600" />
+                <CardContent className="space-y-3">
+                  {resources.map((resource, index) => (
+                    <div key={index} className="flex items-center space-x-3 p-2 hover:bg-gray-50 rounded cursor-pointer">
+                      {resource.type === "video" && <div className="w-4 h-4 bg-red-500 rounded" />}
+                      {resource.type === "article" && <div className="w-4 h-4 bg-blue-500 rounded" />}
+                      {resource.type === "quiz" && <div className="w-4 h-4 bg-green-500 rounded" />}
                       <div className="flex-1">
-                        <p className="text-sm font-medium">{achievement.achievement.name}</p>
-                        <p className="text-xs text-gray-500">{new Date(achievement.earnedAt).toLocaleDateString()}</p>
+                        <p className="text-sm font-medium">{resource.title}</p>
+                        <p className="text-xs text-gray-500">
+                          {resource.duration || resource.readTime || `${resource.questions} questions`}
+                        </p>
                       </div>
                     </div>
                   ))}
                 </CardContent>
               </Card>
-            )}
+            </div>
 
-            {/* Quick Resources */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg flex items-center">
-                  <BookOpen className="h-5 w-5 mr-2 text-blue-600" />
-                  Quick Resources
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {resources.map((resource, index) => (
-                  <div key={index} className="flex items-center space-x-3 p-2 hover:bg-gray-50 rounded cursor-pointer">
-                    {resource.type === "video" && <div className="w-4 h-4 bg-red-500 rounded" />}
-                    {resource.type === "article" && <div className="w-4 h-4 bg-blue-500 rounded" />}
-                    {resource.type === "quiz" && <div className="w-4 h-4 bg-green-500 rounded" />}
-                    <div className="flex-1">
-                      <p className="text-sm font-medium">{resource.title}</p>
-                      <p className="text-xs text-gray-500">
-                        {resource.duration || resource.readTime || `${resource.questions} questions`}
-                      </p>
-                    </div>
+            {/* Controls section */}
+            <div className="grid grid-cols-1 gap-4">
+              {/* Topic & Level Controls */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Learning Focus</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Current Topic</label>
+                    <select
+                      value={currentTopic}
+                      onChange={(e) => setCurrentTopic(e.target.value)}
+                      className="w-full p-2 border rounded text-sm"
+                    >
+                      <option value="web development">Web Development</option>
+                      <option value="data science">Data Science</option>
+                      <option value="machine learning">Machine Learning</option>
+                      <option value="programming">Programming</option>
+                      <option value="design">Design</option>
+                      <option value="business">Business</option>
+                    </select>
                   </div>
-                ))}
-              </CardContent>
-            </Card>
 
-            {/* Topic & Level Controls */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Learning Focus</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div>
-                  <label className="text-sm font-medium mb-2 block">Current Topic</label>
-                  <select
-                    value={currentTopic}
-                    onChange={(e) => setCurrentTopic(e.target.value)}
-                    className="w-full p-2 border rounded text-sm"
-                  >
-                    <option value="web development">Web Development</option>
-                    <option value="data science">Data Science</option>
-                    <option value="machine learning">Machine Learning</option>
-                    <option value="programming">Programming</option>
-                    <option value="design">Design</option>
-                    <option value="business">Business</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="text-sm font-medium mb-2 block">Your Level</label>
-                  <select
-                    value={userLevel}
-                    onChange={(e) => setUserLevel(e.target.value)}
-                    className="w-full p-2 border rounded text-sm"
-                  >
-                    <option value="beginner">Beginner</option>
-                    <option value="intermediate">Intermediate</option>
-                    <option value="advanced">Advanced</option>
-                  </select>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Weekly Progress */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg flex items-center">
-                  <TrendingUp className="h-5 w-5 mr-2 text-green-600" />
-                  Weekly Progress
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {progressLoading ? (
-                  <div className="space-y-2">
-                    {[...Array(4)].map((_, i) => (
-                      <div key={i} className="flex items-center justify-between">
-                        <div className="h-3 bg-gray-200 rounded w-16 animate-pulse" />
-                        <div className="h-2 bg-gray-200 rounded w-20 animate-pulse" />
-                      </div>
-                    ))}
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Your Level</label>
+                    <select
+                      value={userLevel}
+                      onChange={(e) => setUserLevel(e.target.value)}
+                      className="w-full p-2 border rounded text-sm"
+                    >
+                      <option value="beginner">Beginner</option>
+                      <option value="intermediate">Intermediate</option>
+                      <option value="advanced">Advanced</option>
+                    </select>
                   </div>
-                ) : weeklyProgress.length > 0 ? (
-                  <div className="space-y-2">
-                    {weeklyProgress.slice(0, 4).map((week, index) => (
-                      <div key={index} className="flex items-center justify-between">
-                        <span className="text-sm">Day {index + 1}</span>
-                        <div className="flex items-center space-x-2">
-                          <div className="w-16 bg-gray-200 rounded-full h-2">
-                            <div
-                              className="bg-purple-600 h-2 rounded-full"
-                              style={{ width: `${Math.min(100, Number(week.metricValue))}%` }}
-                            />
-                          </div>
-                          <span className="text-xs text-gray-600">{Math.round(Number(week.metricValue))}%</span>
+                </CardContent>
+              </Card>
+
+              {/* Weekly Progress */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg flex items-center">
+                    <TrendingUp className="h-5 w-5 mr-2 text-green-600" />
+                    Weekly Progress
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {progressLoading ? (
+                    <div className="space-y-2">
+                      {[...Array(4)].map((_, i) => (
+                        <div key={i} className="flex items-center justify-between">
+                          <div className="h-3 bg-gray-200 rounded w-16 animate-pulse" />
+                          <div className="h-2 bg-gray-200 rounded w-20 animate-pulse" />
                         </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-4">
-                    <p className="text-sm text-gray-600">Start learning to see your progress!</p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+                      ))}
+                    </div>
+                  ) : weeklyProgress.length > 0 ? (
+                    <div className="space-y-2">
+                      {weeklyProgress.slice(0, 4).map((week: ProgressData, index: number) => (
+                        <div key={index} className="flex items-center justify-between">
+                          <span className="text-sm">Day {index + 1}</span>
+                          <div className="flex items-center space-x-2">
+                            <div className="w-16 bg-gray-200 rounded-full h-2">
+                              <div
+                                className="bg-purple-600 h-2 rounded-full"
+                                style={{ width: `${Math.min(100, Number(week.metricValue))}%` }}
+                              />
+                            </div>
+                            <span className="text-xs text-gray-600">{Math.round(Number(week.metricValue))}%</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-4">
+                      <p className="text-sm text-gray-600">Start learning to see your progress!</p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
           </div>
         </div>
       </div>

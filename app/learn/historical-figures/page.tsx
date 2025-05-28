@@ -155,13 +155,13 @@ export default function HistoricalFiguresPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="bg-white shadow-sm border-b">
+      <header className="bg-white shadow-sm border-b sticky top-0 z-10">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center space-x-4">
             <Link href="/dashboard">
               <Button variant="ghost" size="sm">
                 <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Dashboard
+                Back
               </Button>
             </Link>
             <div className="flex items-center space-x-2">
@@ -172,18 +172,18 @@ export default function HistoricalFiguresPage() {
         </div>
       </header>
 
-      <div className="container mx-auto px-4 py-6">
+      <div className="container mx-auto px-4 py-4 md:py-6">
         {!selectedFigure ? (
           /* Figure Selection */
           <div className="space-y-6">
             <div className="text-center">
-              <h1 className="text-3xl font-bold text-gray-900 mb-4">Choose a Historical Figure</h1>
-              <p className="text-lg text-gray-600 mb-6">
+              <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-3 md:mb-4">Choose a Historical Figure</h1>
+              <p className="text-base md:text-lg text-gray-600 mb-4 md:mb-6">
                 Select a historical figure to have an engaging conversation and learn about their time period.
               </p>
 
               {/* Search */}
-              <div className="max-w-md mx-auto mb-8">
+              <div className="max-w-md mx-auto mb-6 md:mb-8">
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                   <Input
@@ -197,7 +197,7 @@ export default function HistoricalFiguresPage() {
             </div>
 
             {/* Figure Cards */}
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
               {filteredFigures.map((figure) => (
                 <Card
                   key={figure.id}
@@ -205,7 +205,7 @@ export default function HistoricalFiguresPage() {
                   onClick={() => setSelectedFigure(figure)}
                 >
                   <CardHeader className="text-center">
-                    <Avatar className="h-20 w-20 mx-auto mb-4">
+                    <Avatar className="h-16 w-16 md:h-20 md:w-20 mx-auto mb-3 md:mb-4">
                       <AvatarImage src={figure.image || "/placeholder.svg"} />
                       <AvatarFallback className="text-lg">
                         {figure.name
@@ -215,7 +215,7 @@ export default function HistoricalFiguresPage() {
                       </AvatarFallback>
                     </Avatar>
                     <CardTitle className="text-lg">{figure.name}</CardTitle>
-                    <div className="flex justify-center space-x-2">
+                    <div className="flex flex-wrap justify-center gap-2">
                       <Badge variant="outline">{figure.era}</Badge>
                       <Badge variant="secondary">{figure.field}</Badge>
                     </div>
@@ -229,76 +229,103 @@ export default function HistoricalFiguresPage() {
           </div>
         ) : (
           /* Chat Interface */
-          <div className="grid grid-cols-12 gap-6 h-[calc(100vh-8rem)]">
+          <div className="flex flex-col lg:grid lg:grid-cols-12 gap-4 md:gap-6">
             {/* Left Sidebar - Timeline and Facts */}
-            <div className="col-span-3 space-y-4">
+            <div className="w-full lg:col-span-3 space-y-4 order-2 lg:order-1">
               {/* Back to Selection */}
               <Button variant="outline" onClick={() => setSelectedFigure(null)} className="w-full">
                 ← Choose Different Figure
               </Button>
 
-              {/* Selected Figure Info */}
-              <Card>
-                <CardHeader className="text-center">
-                  <Avatar className="h-16 w-16 mx-auto mb-2">
-                    <AvatarImage src={selectedFigure.image || "/placeholder.svg"} />
-                    <AvatarFallback>
-                      {selectedFigure.name
-                        .split(" ")
-                        .map((n: string) => n[0])
-                        .join("")}
-                    </AvatarFallback>
-                  </Avatar>
-                  <CardTitle className="text-lg">{selectedFigure.name}</CardTitle>
-                  <div className="flex justify-center space-x-2">
-                    <Badge variant="outline">{selectedFigure.era}</Badge>
-                    <Badge variant="secondary">{selectedFigure.field}</Badge>
-                  </div>
-                </CardHeader>
-              </Card>
-
-              {/* Timeline */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg flex items-center">
-                    <Clock className="h-5 w-5 mr-2 text-blue-600" />
-                    Timeline
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  {selectedFigure.timeline.map((event: string, index: number) => (
-                    <div key={index} className="flex items-start space-x-3">
-                      <div className="w-2 h-2 bg-blue-600 rounded-full mt-2 flex-shrink-0" />
-                      <p className="text-sm">{event}</p>
+              {/* Mobile-only overview card - only shown on small screens */}
+              <div className="lg:hidden">
+                <Card>
+                  <CardHeader className="text-center">
+                    <Avatar className="h-16 w-16 mx-auto mb-2">
+                      <AvatarImage src={selectedFigure.image || "/placeholder.svg"} />
+                      <AvatarFallback>
+                        {selectedFigure.name
+                          .split(" ")
+                          .map((n: string) => n[0])
+                          .join("")}
+                      </AvatarFallback>
+                    </Avatar>
+                    <CardTitle className="text-lg">{selectedFigure.name}</CardTitle>
+                    <div className="flex flex-wrap justify-center gap-2">
+                      <Badge variant="outline">{selectedFigure.era}</Badge>
+                      <Badge variant="secondary">{selectedFigure.field}</Badge>
                     </div>
-                  ))}
-                </CardContent>
-              </Card>
+                  </CardHeader>
+                </Card>
+              </div>
 
-              {/* Facts */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg flex items-center">
-                    <BookOpen className="h-5 w-5 mr-2 text-green-600" />
-                    Key Facts
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-2">
-                  {selectedFigure.facts.map((fact: string, index: number) => (
-                    <div key={index} className="bg-green-50 p-2 rounded border-l-4 border-green-400">
-                      <p className="text-sm">{fact}</p>
+              {/* Desktop info card - hidden on mobile */}
+              <div className="hidden lg:block">
+                <Card>
+                  <CardHeader className="text-center">
+                    <Avatar className="h-16 w-16 mx-auto mb-2">
+                      <AvatarImage src={selectedFigure.image || "/placeholder.svg"} />
+                      <AvatarFallback>
+                        {selectedFigure.name
+                          .split(" ")
+                          .map((n: string) => n[0])
+                          .join("")}
+                      </AvatarFallback>
+                    </Avatar>
+                    <CardTitle className="text-lg">{selectedFigure.name}</CardTitle>
+                    <div className="flex justify-center space-x-2">
+                      <Badge variant="outline">{selectedFigure.era}</Badge>
+                      <Badge variant="secondary">{selectedFigure.field}</Badge>
                     </div>
-                  ))}
-                </CardContent>
-              </Card>
+                  </CardHeader>
+                </Card>
+              </div>
+
+              {/* Timeline and Facts in a tabbed layout on mobile */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-4">
+                {/* Timeline */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg flex items-center">
+                      <Clock className="h-5 w-5 mr-2 text-blue-600" />
+                      Timeline
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    {selectedFigure.timeline.map((event: string, index: number) => (
+                      <div key={index} className="flex items-start space-x-3">
+                        <div className="w-2 h-2 bg-blue-600 rounded-full mt-2 flex-shrink-0" />
+                        <p className="text-sm">{event}</p>
+                      </div>
+                    ))}
+                  </CardContent>
+                </Card>
+
+                {/* Facts */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg flex items-center">
+                      <BookOpen className="h-5 w-5 mr-2 text-green-600" />
+                      Key Facts
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-2">
+                    {selectedFigure.facts.map((fact: string, index: number) => (
+                      <div key={index} className="bg-green-50 p-2 rounded border-l-4 border-green-400">
+                        <p className="text-sm">{fact}</p>
+                      </div>
+                    ))}
+                  </CardContent>
+                </Card>
+              </div>
             </div>
 
             {/* Center - Chat */}
-            <div className="col-span-6">
+            <div className="w-full lg:col-span-6 order-1 lg:order-2">
               <Card className="h-full">
                 <CardHeader>
-                  <div className="flex items-center space-x-3">
-                    <Avatar className="h-12 w-12">
+                  <div className="flex flex-col sm:flex-row sm:items-center space-y-3 sm:space-y-0 sm:space-x-3">
+                    <Avatar className="h-12 w-12 hidden sm:flex">
                       <AvatarImage src={selectedFigure.image || "/placeholder.svg"} />
                       <AvatarFallback>
                         {selectedFigure.name
@@ -314,7 +341,7 @@ export default function HistoricalFiguresPage() {
                   </div>
                 </CardHeader>
 
-                <div className="flex-1 px-6 pb-6">
+                <div className="flex-1 px-4 md:px-6 pb-6">
                   <ChatInterface
                     title=""
                     description=""
@@ -328,7 +355,7 @@ export default function HistoricalFiguresPage() {
             </div>
 
             {/* Right Sidebar - Suggested Questions */}
-            <div className="col-span-3">
+            <div className="w-full lg:col-span-3 order-3">
               <Card className="h-full">
                 <CardHeader>
                   <CardTitle className="text-lg flex items-center">
@@ -348,19 +375,11 @@ export default function HistoricalFiguresPage() {
 
                   <div className="mt-6 pt-4 border-t">
                     <h4 className="font-medium text-sm mb-2">Learn More About:</h4>
-                    <div className="space-y-1">
-                      <Badge variant="outline" className="mr-1 mb-1">
-                        Historical Context
-                      </Badge>
-                      <Badge variant="outline" className="mr-1 mb-1">
-                        Personal Life
-                      </Badge>
-                      <Badge variant="outline" className="mr-1 mb-1">
-                        Major Works
-                      </Badge>
-                      <Badge variant="outline" className="mr-1 mb-1">
-                        Legacy
-                      </Badge>
+                    <div className="flex flex-wrap gap-2">
+                      <Badge variant="outline">Historical Context</Badge>
+                      <Badge variant="outline">Personal Life</Badge>
+                      <Badge variant="outline">Major Works</Badge>
+                      <Badge variant="outline">Legacy</Badge>
                     </div>
                   </div>
                 </CardContent>

@@ -23,7 +23,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
     <PrivyProvider
       appId={process.env.NEXT_PUBLIC_PRIVY_APP_ID!}
       config={{
-        loginMethods: ["email", "google", "github"],
+        loginMethods: ["email", "google", "github","twitter"],
         appearance: {
           theme: "light",
           accentColor: "#8B5CF6",

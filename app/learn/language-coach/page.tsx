@@ -60,6 +60,7 @@ export default function LanguageCoachPage() {
   const [wordDefinition, setWordDefinition] = useState<any>(null)
   const [pronunciationAccuracy, setPronunciationAccuracy] = useState(0)
   const [activeView, setActiveView] = useState<"main" | "vocabulary" | "flashcards" | "pronunciation">("main")
+  const [mobileTab, setMobileTab] = useState<"content" | "features" | "stats">("content")
 
   // Text to speech hook
   const { speak } = useTextToSpeech()
@@ -266,7 +267,7 @@ Be patient, culturally sensitive, and make language learning fun and practical. 
     <div className={`min-h-screen transition-colors duration-300 ${darkMode ? "dark bg-gray-900" : "bg-gray-50"}`}>
       {/* Header */}
       <header
-        className={`shadow-sm border-b transition-colors duration-300 ${darkMode ? "bg-gray-800 border-gray-700" : "bg-white"}`}
+        className={`shadow-sm border-b transition-colors duration-300 sticky top-0 z-10 ${darkMode ? "bg-gray-800 border-gray-700" : "bg-white"}`}
       >
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
@@ -274,7 +275,7 @@ Be patient, culturally sensitive, and make language learning fun and practical. 
               <Link href="/dashboard">
                 <Button variant="ghost" size="sm">
                   <ArrowLeft className="h-4 w-4 mr-2" />
-                  Back to Dashboard
+                  Back
                 </Button>
               </Link>
               <div className="flex items-center space-x-2">
@@ -285,10 +286,10 @@ Be patient, culturally sensitive, and make language learning fun and practical. 
               </div>
             </div>
 
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2 md:space-x-4">
               {/* Language Selector */}
               <Select value={selectedLanguage} onValueChange={setSelectedLanguage}>
-                <SelectTrigger className="w-48">
+                <SelectTrigger className="w-24 md:w-48">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -296,8 +297,8 @@ Be patient, culturally sensitive, and make language learning fun and practical. 
                     <SelectItem key={lang.code} value={lang.code}>
                       <div className="flex items-center space-x-2">
                         <span>{lang.flag}</span>
-                        <span>{lang.name}</span>
-                        <Badge variant="outline" className="text-xs">
+                        <span className="hidden md:inline">{lang.name}</span>
+                        <Badge variant="outline" className="text-xs hidden md:inline-flex">
                           {lang.level}
                         </Badge>
                       </div>
@@ -307,7 +308,7 @@ Be patient, culturally sensitive, and make language learning fun and practical. 
               </Select>
 
               {/* Dark Mode Toggle */}
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-1 md:space-x-2">
                 <Sun className="h-4 w-4" />
                 <Switch checked={darkMode} onCheckedChange={setDarkMode} />
                 <Moon className="h-4 w-4" />
@@ -317,35 +318,35 @@ Be patient, culturally sensitive, and make language learning fun and practical. 
         </div>
       </header>
 
-      <div className="container mx-auto px-4 py-6">
+      <div className="container mx-auto px-4 py-4 md:py-6">
         {/* Language Progress Bar */}
         {activeView === "main" && (
-          <Card className={`mb-6 ${darkMode ? "bg-gray-800 border-gray-700" : ""}`}>
-            <CardHeader>
-              <div className="flex items-center justify-between">
+          <Card className={`mb-4 md:mb-6 ${darkMode ? "bg-gray-800 border-gray-700" : ""}`}>
+            <CardHeader className="py-3 md:py-4">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0">
                 <div className="flex items-center space-x-3">
-                  <span className="text-3xl">{currentLanguage?.flag}</span>
+                  <span className="text-2xl md:text-3xl">{currentLanguage?.flag}</span>
                   <div>
-                    <CardTitle className={`text-lg ${darkMode ? "text-white" : ""}`}>
+                    <CardTitle className={`text-base md:text-lg ${darkMode ? "text-white" : ""}`}>
                       {currentLanguage?.name} Learning Progress
                     </CardTitle>
-                    <Badge className="bg-violet-100 text-violet-700">{currentLanguage?.level}</Badge>
+                    <Badge className="bg-violet-100 text-violet-700 mt-1">{currentLanguage?.level}</Badge>
                   </div>
                 </div>
-                <div className="flex items-center space-x-4">
+                <div className="flex gap-4">
                   <div className="text-center">
-                    <div className={`text-2xl font-bold ${darkMode ? "text-white" : "text-gray-900"}`}>127</div>
-                    <div className={`text-sm ${darkMode ? "text-gray-400" : "text-gray-600"}`}>Words Learned</div>
+                    <div className={`text-xl md:text-2xl font-bold ${darkMode ? "text-white" : "text-gray-900"}`}>127</div>
+                    <div className={`text-xs md:text-sm ${darkMode ? "text-gray-400" : "text-gray-600"}`}>Words</div>
                   </div>
                   <div className="text-center">
-                    <div className={`text-2xl font-bold ${darkMode ? "text-white" : "text-gray-900"}`}>15</div>
-                    <div className={`text-sm ${darkMode ? "text-gray-400" : "text-gray-600"}`}>Day Streak</div>
+                    <div className={`text-xl md:text-2xl font-bold ${darkMode ? "text-white" : "text-gray-900"}`}>15</div>
+                    <div className={`text-xs md:text-sm ${darkMode ? "text-gray-400" : "text-gray-600"}`}>Day Streak</div>
                   </div>
                 </div>
               </div>
             </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-4 gap-4">
+            <CardContent className="py-3">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
                 {weeklyProgress.map((skill, index) => (
                   <div key={index}>
                     <div className="flex justify-between text-sm mb-1">
@@ -360,56 +361,80 @@ Be patient, culturally sensitive, and make language learning fun and practical. 
           </Card>
         )}
 
+        {/* Mobile Tabs for Navigation - Only visible on small screens */}
+        {activeView === "main" && (
+          <div className="lg:hidden mb-4">
+            <Tabs value={mobileTab} onValueChange={(value) => setMobileTab(value as "content" | "features" | "stats")}>
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="content">
+                  <MessageCircle className="h-4 w-4 mr-2" />
+                  Content
+                </TabsTrigger>
+                <TabsTrigger value="features">
+                  <Headphones className="h-4 w-4 mr-2" />
+                  Features
+                </TabsTrigger>
+                <TabsTrigger value="stats">
+                  <Trophy className="h-4 w-4 mr-2" />
+                  Stats
+                </TabsTrigger>
+              </TabsList>
+            </Tabs>
+          </div>
+        )}
+
         {/* Main Content */}
         {activeView === "main" ? (
-          <div className="grid grid-cols-12 gap-6 h-[calc(100vh-16rem)]">
-            {/* Left Panel - Scenarios & Settings */}
-            <div className="col-span-3 space-y-4">
+          <div className="flex flex-col lg:grid lg:grid-cols-12 gap-4 md:gap-6">
+            {/* Left Panel - Scenarios & Settings - Hidden on mobile unless on "features" tab */}
+            <div className={`w-full lg:col-span-3 ${mobileTab !== "features" && "hidden lg:block"}`}>
               {/* Conversation Scenarios */}
-              <Card className={darkMode ? "bg-gray-800 border-gray-700" : ""}>
-                <CardHeader>
-                  <CardTitle className={`text-lg flex items-center ${darkMode ? "text-white" : ""}`}>
+              <Card className={`mb-4 ${darkMode ? "bg-gray-800 border-gray-700" : ""}`}>
+                <CardHeader className="py-3">
+                  <CardTitle className={`text-base md:text-lg flex items-center ${darkMode ? "text-white" : ""}`}>
                     <MessageCircle className="h-5 w-5 mr-2 text-violet-600" />
                     Practice Scenarios
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  {conversationScenarios.map((scenario) => (
-                    <div
-                      key={scenario.id}
-                      className={`p-3 rounded border cursor-pointer transition-colors ${
-                        currentScenario === scenario.id
-                          ? "border-violet-500 bg-violet-50"
-                          : darkMode
-                            ? "border-gray-600 bg-gray-700 hover:bg-gray-600"
-                            : "border-gray-200 hover:bg-gray-50"
-                      }`}
-                      onClick={() => setCurrentScenario(scenario.id)}
-                    >
-                      <div className="flex items-center justify-between mb-1">
-                        <span className={`text-sm font-medium ${darkMode ? "text-white" : ""}`}>{scenario.title}</span>
-                        <Badge
-                          variant={
-                            scenario.difficulty === "Beginner"
-                              ? "default"
-                              : scenario.difficulty === "Intermediate"
-                                ? "secondary"
-                                : "destructive"
-                          }
-                        >
-                          {scenario.difficulty}
-                        </Badge>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-3">
+                    {conversationScenarios.map((scenario) => (
+                      <div
+                        key={scenario.id}
+                        className={`p-3 rounded border cursor-pointer transition-colors ${
+                          currentScenario === scenario.id
+                            ? "border-violet-500 bg-violet-50"
+                            : darkMode
+                              ? "border-gray-600 bg-gray-700 hover:bg-gray-600"
+                              : "border-gray-200 hover:bg-gray-50"
+                        }`}
+                        onClick={() => setCurrentScenario(scenario.id)}
+                      >
+                        <div className="flex items-center justify-between mb-1">
+                          <span className={`text-sm font-medium ${darkMode ? "text-white" : ""}`}>{scenario.title}</span>
+                          <Badge
+                            variant={
+                              scenario.difficulty === "Beginner"
+                                ? "default"
+                                : scenario.difficulty === "Intermediate"
+                                  ? "secondary"
+                                  : "destructive"
+                            }
+                          >
+                            {scenario.difficulty}
+                          </Badge>
+                        </div>
+                        <p className={`text-xs ${darkMode ? "text-gray-400" : "text-gray-600"}`}>{scenario.description}</p>
                       </div>
-                      <p className={`text-xs ${darkMode ? "text-gray-400" : "text-gray-600"}`}>{scenario.description}</p>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </CardContent>
               </Card>
 
               {/* Language Settings */}
-              <Card className={darkMode ? "bg-gray-800 border-gray-700" : ""}>
-                <CardHeader>
-                  <CardTitle className={`text-lg ${darkMode ? "text-white" : ""}`}>Settings</CardTitle>
+              <Card className={`mb-4 ${darkMode ? "bg-gray-800 border-gray-700" : ""}`}>
+                <CardHeader className="py-3">
+                  <CardTitle className={`text-base md:text-lg ${darkMode ? "text-white" : ""}`}>Settings</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="flex items-center justify-between">
@@ -445,8 +470,8 @@ Be patient, culturally sensitive, and make language learning fun and practical. 
 
               {/* Quick Phrases */}
               <Card className={darkMode ? "bg-gray-800 border-gray-700" : ""}>
-                <CardHeader>
-                  <CardTitle className={`text-lg ${darkMode ? "text-white" : ""}`}>Quick Phrases</CardTitle>
+                <CardHeader className="py-3">
+                  <CardTitle className={`text-base md:text-lg ${darkMode ? "text-white" : ""}`}>Quick Phrases</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-2">
                   {currentScenario &&
@@ -479,8 +504,8 @@ Be patient, culturally sensitive, and make language learning fun and practical. 
               </Card>
             </div>
 
-            {/* Center - Main Content */}
-            <div className="col-span-6">
+            {/* Center - Main Content - Hidden on mobile unless on "content" tab */}
+            <div className={`w-full lg:col-span-6 ${mobileTab !== "content" && "hidden lg:block"}`}>
               <Tabs 
                 defaultValue="conversation" 
                 className="h-full"
@@ -500,12 +525,12 @@ Be patient, culturally sensitive, and make language learning fun and practical. 
 
                 <TabsContent value="conversation" className="mt-4 h-[calc(100%-3rem)]">
                   <Card className={`h-full ${darkMode ? "bg-gray-800 border-gray-700" : ""}`}>
-                    <CardHeader>
-                      <div className="flex items-center justify-between">
-                        <CardTitle className={`text-lg ${darkMode ? "text-white" : ""}`}>
+                    <CardHeader className="py-3">
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0">
+                        <CardTitle className={`text-base md:text-lg ${darkMode ? "text-white" : ""}`}>
                           Language Practice Chat
                         </CardTitle>
-                        <div className="flex items-center space-x-2">
+                        <div className="flex flex-wrap gap-2">
                           {currentScenario && (
                             <Badge className="bg-violet-100 text-violet-700">
                               {conversationScenarios.find((s) => s.id === currentScenario)?.title}
@@ -518,7 +543,7 @@ Be patient, culturally sensitive, and make language learning fun and practical. 
                       </div>
                     </CardHeader>
 
-                    <div className="flex-1 px-6 pb-6">
+                    <div className="flex-1 px-4 md:px-6 pb-6">
                       <ChatInterface
                         title=""
                         description=""
@@ -538,9 +563,9 @@ Be patient, culturally sensitive, and make language learning fun and practical. 
 
                 <TabsContent value="vocabulary" className="mt-4">
                   <Card className={`h-full ${darkMode ? "bg-gray-800 border-gray-700" : ""}`}>
-                    <CardHeader>
-                      <div className="flex items-center justify-between">
-                        <CardTitle className={`text-lg flex items-center ${darkMode ? "text-white" : ""}`}>
+                    <CardHeader className="py-3">
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0">
+                        <CardTitle className={`text-base md:text-lg flex items-center ${darkMode ? "text-white" : ""}`}>
                           <BookOpen className="h-5 w-5 mr-2 text-blue-600" />
                           Vocabulary Builder
                         </CardTitle>
@@ -555,7 +580,7 @@ Be patient, culturally sensitive, and make language learning fun and practical. 
                         Click "Manage Vocabulary" to add, organize, and practice your vocabulary words.
                       </p>
                       
-                      <div className="flex justify-center mt-6 space-x-4">
+                      <div className="flex flex-col sm:flex-row justify-center mt-6 gap-4">
                         <Button onClick={() => setActiveView("vocabulary")}>
                           View Vocabulary
                         </Button>
@@ -569,8 +594,8 @@ Be patient, culturally sensitive, and make language learning fun and practical. 
 
                 <TabsContent value="culture" className="mt-4">
                   <Card className={`h-full ${darkMode ? "bg-gray-800 border-gray-700" : ""}`}>
-                    <CardHeader>
-                      <CardTitle className={`text-lg flex items-center ${darkMode ? "text-white" : ""}`}>
+                    <CardHeader className="py-3">
+                      <CardTitle className={`text-base md:text-lg flex items-center ${darkMode ? "text-white" : ""}`}>
                         <Flag className="h-5 w-5 mr-2 text-red-600" />
                         Cultural Insights
                       </CardTitle>
@@ -581,7 +606,7 @@ Be patient, culturally sensitive, and make language learning fun and practical. 
                           key={index}
                           className={`p-4 rounded border ${darkMode ? "border-gray-600 bg-gray-700" : "bg-blue-50 border-blue-200"}`}
                         >
-                          <div className="flex items-center justify-between mb-2">
+                          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-1 sm:space-y-0 mb-2">
                             <h4 className={`font-medium ${darkMode ? "text-white" : ""}`}>{insight.title}</h4>
                             <Badge variant="outline">{insight.category}</Badge>
                           </div>
@@ -591,10 +616,10 @@ Be patient, culturally sensitive, and make language learning fun and practical. 
 
                       {/* Cultural Videos/Articles Placeholder */}
                       <div
-                        className={`border-2 border-dashed rounded-lg p-6 text-center ${darkMode ? "border-gray-600" : "border-gray-300"}`}
+                        className={`border-2 border-dashed rounded-lg p-4 md:p-6 text-center ${darkMode ? "border-gray-600" : "border-gray-300"}`}
                       >
-                        <Globe className={`h-12 w-12 mx-auto mb-3 ${darkMode ? "text-gray-400" : "text-gray-500"}`} />
-                        <p className={`text-lg font-medium mb-2 ${darkMode ? "text-white" : ""}`}>
+                        <Globe className={`h-10 w-10 md:h-12 md:w-12 mx-auto mb-3 ${darkMode ? "text-gray-400" : "text-gray-500"}`} />
+                        <p className={`text-base md:text-lg font-medium mb-2 ${darkMode ? "text-white" : ""}`}>
                           Cultural Immersion Content
                         </p>
                         <p className={`text-sm mb-4 ${darkMode ? "text-gray-400" : "text-gray-600"}`}>
@@ -608,12 +633,12 @@ Be patient, culturally sensitive, and make language learning fun and practical. 
               </Tabs>
             </div>
 
-            {/* Right Panel - Progress & Tools */}
-            <div className="col-span-3 space-y-4">
+            {/* Right Panel - Progress & Tools - Hidden on mobile unless on "stats" tab */}
+            <div className={`w-full lg:col-span-3 ${mobileTab !== "stats" && "hidden lg:block"}`}>
               {/* Pronunciation Practice */}
-              <Card className={darkMode ? "bg-gray-800 border-gray-700" : ""}>
-                <CardHeader>
-                  <CardTitle className={`text-lg flex items-center ${darkMode ? "text-white" : ""}`}>
+              <Card className={`mb-4 ${darkMode ? "bg-gray-800 border-gray-700" : ""}`}>
+                <CardHeader className="py-3">
+                  <CardTitle className={`text-base md:text-lg flex items-center ${darkMode ? "text-white" : ""}`}>
                     <Headphones className="h-5 w-5 mr-2 text-green-600" />
                     Pronunciation
                   </CardTitle>
@@ -641,15 +666,15 @@ Be patient, culturally sensitive, and make language learning fun and practical. 
               </Card>
 
               {/* Learning Streak */}
-              <Card className={darkMode ? "bg-gray-800 border-gray-700" : ""}>
-                <CardHeader>
-                  <CardTitle className={`text-lg flex items-center ${darkMode ? "text-white" : ""}`}>
+              <Card className={`mb-4 ${darkMode ? "bg-gray-800 border-gray-700" : ""}`}>
+                <CardHeader className="py-3">
+                  <CardTitle className={`text-base md:text-lg flex items-center ${darkMode ? "text-white" : ""}`}>
                     <Trophy className="h-5 w-5 mr-2 text-yellow-600" />
                     Learning Streak
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="text-center space-y-3">
-                  <div className={`text-3xl font-bold ${darkMode ? "text-white" : "text-yellow-600"}`}>15</div>
+                  <div className={`text-2xl md:text-3xl font-bold ${darkMode ? "text-white" : "text-yellow-600"}`}>15</div>
                   <div className={`text-sm ${darkMode ? "text-gray-400" : "text-gray-600"}`}>Days in a row!</div>
                   <Progress value={75} className="h-2" />
                   <div className={`text-xs ${darkMode ? "text-gray-400" : "text-gray-600"}`}>
@@ -659,46 +684,48 @@ Be patient, culturally sensitive, and make language learning fun and practical. 
               </Card>
 
               {/* Quick Actions */}
-              <Card className={darkMode ? "bg-gray-800 border-gray-700" : ""}>
-                <CardHeader>
-                  <CardTitle className={`text-lg ${darkMode ? "text-white" : ""}`}>Quick Actions</CardTitle>
+              <Card className={`mb-4 ${darkMode ? "bg-gray-800 border-gray-700" : ""}`}>
+                <CardHeader className="py-3">
+                  <CardTitle className={`text-base md:text-lg ${darkMode ? "text-white" : ""}`}>Quick Actions</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-2">
-                  <Button 
-                    variant="outline" 
-                    className="w-full justify-start" 
-                    onClick={() => setActiveView("vocabulary")}
-                  >
-                    <BookOpen className="h-4 w-4 mr-2" />
-                    Manage Vocabulary
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    className="w-full justify-start"
-                    onClick={() => setActiveView("flashcards")}
-                  >
-                    <Play className="h-4 w-4 mr-2" />
-                    Flashcard Practice
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    className="w-full justify-start"
-                    onClick={() => setActiveView("pronunciation")}
-                  >
-                    <Mic className="h-4 w-4 mr-2" />
-                    Pronunciation Practice
-                  </Button>
-                  <Button variant="outline" className="w-full justify-start">
-                    <Users className="h-4 w-4 mr-2" />
-                    Find Language Partner
-                  </Button>
+                  <div className="grid grid-cols-2 sm:grid-cols-1 gap-2">
+                    <Button 
+                      variant="outline" 
+                      className="w-full justify-start" 
+                      onClick={() => setActiveView("vocabulary")}
+                    >
+                      <BookOpen className="h-4 w-4 mr-2" />
+                      <span className="truncate">Manage Vocabulary</span>
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      className="w-full justify-start"
+                      onClick={() => setActiveView("flashcards")}
+                    >
+                      <Play className="h-4 w-4 mr-2" />
+                      <span className="truncate">Flashcard Practice</span>
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      className="w-full justify-start"
+                      onClick={() => setActiveView("pronunciation")}
+                    >
+                      <Mic className="h-4 w-4 mr-2" />
+                      <span className="truncate">Pronunciation Practice</span>
+                    </Button>
+                    <Button variant="outline" className="w-full justify-start">
+                      <Users className="h-4 w-4 mr-2" />
+                      <span className="truncate">Find Language Partner</span>
+                    </Button>
+                  </div>
                 </CardContent>
               </Card>
 
               {/* Daily Goal */}
               <Card className={darkMode ? "bg-gray-800 border-gray-700" : ""}>
-                <CardHeader>
-                  <CardTitle className={`text-lg ${darkMode ? "text-white" : ""}`}>Daily Goal</CardTitle>
+                <CardHeader className="py-3">
+                  <CardTitle className={`text-base md:text-lg ${darkMode ? "text-white" : ""}`}>Daily Goal</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
