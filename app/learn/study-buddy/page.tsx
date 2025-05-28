@@ -10,12 +10,11 @@ import { Progress } from "@/components/ui/progress"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Switch } from "@/components/ui/switch"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Calendar } from "@/components/ui/calendar"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { format } from "date-fns"
 import {
   ArrowLeft,
   BookOpen,
@@ -41,25 +40,16 @@ import {
   AlertCircle
 } from "lucide-react"
 import ChatInterface from "@/components/chat-interface"
-import { format } from "date-fns"
-import PomodoroTimer from "@/components/study/PomodoroTimer"
-import CalendarComponent from "@/components/study/CalendarComponent"
+
+// Import our modular components
+import PomodoroTimer from "@/components/study-buddy/pomodoro-timer"
+import StudyCalendar from "@/components/study-buddy/calendar-view"
 
 // Add type for Google API window
 declare global {
   interface Window {
     gapi: any;
   }
-}
-
-// Add type for calendar events
-interface CalendarEvent {
-  id: string;
-  title: string;
-  start: Date;
-  end: Date;
-  description?: string;
-  subject?: string;
 }
 
 // Type for flashcards
@@ -93,26 +83,8 @@ interface ConceptLink {
 
 export default function StudyBuddyPage() {
   const [darkMode, setDarkMode] = useState(false)
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date())
-  const [pomodoroTime, setPomodoroTime] = useState(25 * 60) // 25 minutes in seconds
-  const [isTimerRunning, setIsTimerRunning] = useState(false)
   const [currentGoal, setCurrentGoal] = useState("Complete Math Chapter 5")
   
-  // Google Calendar integration
-  const [calendarEvents, setCalendarEvents] = useState<CalendarEvent[]>([])
-  const [newEvent, setNewEvent] = useState<Partial<CalendarEvent>>({
-    title: "",
-    description: "",
-    subject: "",
-    start: new Date(),
-    end: new Date(new Date().getTime() + 60 * 60 * 1000), // Default to 1 hour
-  })
-  const [showAddEvent, setShowAddEvent] = useState(false)
-
-  // Google Auth
-  const [isGoogleAuthorized, setIsGoogleAuthorized] = useState(false)
-  const googleApiLoaded = useRef(false)
-
   // Document upload and processing
   const [uploadedFile, setUploadedFile] = useState<File | null>(null)
   const [uploadedText, setUploadedText] = useState("")
@@ -157,7 +129,7 @@ export default function StudyBuddyPage() {
   const [showConceptMapForm, setShowConceptMapForm] = useState(false)
   const [conceptMapTopic, setConceptMapTopic] = useState("Photosynthesis")
   const conceptMapRef = useRef<HTMLDivElement>(null)
-
+  
   // For responsive design
   const [isMobile, setIsMobile] = useState(false)
 
@@ -170,138 +142,6 @@ export default function StudyBuddyPage() {
     window.addEventListener('resize', checkMobile)
     return () => window.removeEventListener('resize', checkMobile)
   }, [])
-
-  // Mock events - would be replaced with actual Google Calendar events
-  useEffect(() => {
-    // Dummy events - would be replaced with actual Google Calendar API calls
-    const dummyEvents = [
-      {
-        id: "1",
-        title: "Math Study Session",
-        start: new Date(new Date().setHours(10, 0, 0, 0)),
-        end: new Date(new Date().setHours(11, 30, 0, 0)),
-        subject: "Mathematics"
-      },
-      {
-        id: "2",
-        title: "Physics Lab Prep",
-        start: new Date(new Date().setHours(14, 0, 0, 0)),
-        end: new Date(new Date().setHours(15, 0, 0, 0)),
-        subject: "Physics"
-      }
-    ]
-    setCalendarEvents(dummyEvents)
-
-    // Google Calendar API setup
-    if (!googleApiLoaded.current && typeof window !== 'undefined') {
-      const script = document.createElement('script')
-      script.src = 'https://apis.google.com/js/api.js'
-      script.onload = initGoogleCalendarApi
-      document.body.appendChild(script)
-      googleApiLoaded.current = true
-    }
-  }, [])
-
-  const initGoogleCalendarApi = () => {
-    if (window.gapi) {
-      window.gapi.load('client:auth2', () => {
-        window.gapi.client.init({
-          apiKey: process.env.NEXT_PUBLIC_GOOGLE_API_KEY,
-          clientId: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID,
-          discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest'],
-          scope: 'https://www.googleapis.com/auth/calendar'
-        }).then(() => {
-          // Check if already signed in
-          if (window.gapi.auth2.getAuthInstance().isSignedIn.get()) {
-            setIsGoogleAuthorized(true)
-            loadCalendarEvents()
-          }
-        })
-      })
-    }
-  }
-
-  const handleGoogleSignIn = () => {
-    if (window.gapi && window.gapi.auth2) {
-      window.gapi.auth2.getAuthInstance().signIn().then(() => {
-        setIsGoogleAuthorized(true)
-        loadCalendarEvents()
-      })
-    }
-  }
-
-  const loadCalendarEvents = () => {
-    if (window.gapi && window.gapi.client) {
-      window.gapi.client.calendar.events.list({
-        'calendarId': 'primary',
-        'timeMin': (new Date()).toISOString(),
-        'showDeleted': false,
-        'singleEvents': true,
-        'maxResults': 10,
-        'orderBy': 'startTime'
-      }).then((response: any) => {
-        const events = response.result.items.map((event: any) => ({
-          id: event.id,
-          title: event.summary,
-          start: new Date(event.start.dateTime || event.start.date),
-          end: new Date(event.end.dateTime || event.end.date),
-          description: event.description
-        }))
-        setCalendarEvents(events)
-      })
-    }
-  }
-
-  const addEventToGoogleCalendar = () => {
-    if (!newEvent.title) return
-    
-    if (window.gapi && window.gapi.client && isGoogleAuthorized) {
-      const event = {
-        'summary': newEvent.title,
-        'description': newEvent.description || 'Study session',
-        'start': {
-          'dateTime': newEvent.start?.toISOString(),
-          'timeZone': Intl.DateTimeFormat().resolvedOptions().timeZone
-        },
-        'end': {
-          'dateTime': newEvent.end?.toISOString(),
-          'timeZone': Intl.DateTimeFormat().resolvedOptions().timeZone
-        }
-      }
-
-      window.gapi.client.calendar.events.insert({
-        'calendarId': 'primary',
-        'resource': event
-      }).then(() => {
-        loadCalendarEvents()
-        setShowAddEvent(false)
-        setNewEvent({
-          title: "",
-          description: "",
-          start: new Date(),
-          end: new Date(new Date().getTime() + 60 * 60 * 1000)
-        })
-      })
-    } else {
-      // For demo purposes, just add to local state
-      const newLocalEvent = {
-        id: Math.random().toString(36).substring(7),
-        title: newEvent.title || "",
-        description: newEvent.description || "",
-        subject: newEvent.subject || "",
-        start: newEvent.start || new Date(),
-        end: newEvent.end || new Date(new Date().getTime() + 60 * 60 * 1000)
-      }
-      setCalendarEvents([...calendarEvents, newLocalEvent])
-      setShowAddEvent(false)
-      setNewEvent({
-        title: "",
-        description: "",
-        start: new Date(),
-        end: new Date(new Date().getTime() + 60 * 60 * 1000)
-      })
-    }
-  }
 
   // Document upload and processing functions
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -550,18 +390,6 @@ The material builds upon previous concepts and establishes a foundation for adva
     }
   }
 
-  // Filter events for selected date
-  const getEventsForSelectedDate = () => {
-    if (!selectedDate) return []
-    
-    return calendarEvents.filter(event => {
-      const eventDate = new Date(event.start)
-      return eventDate.getDate() === selectedDate.getDate() &&
-             eventDate.getMonth() === selectedDate.getMonth() &&
-             eventDate.getFullYear() === selectedDate.getFullYear()
-    })
-  }
-
   const studySessions = [
     { id: 1, subject: "Mathematics", topic: "Calculus", duration: 90, date: "2024-01-15", completed: true },
     { id: 2, subject: "Physics", topic: "Quantum Mechanics", duration: 60, date: "2024-01-15", completed: false },
@@ -591,17 +419,6 @@ The material builds upon previous concepts and establishes a foundation for adva
     { id: 2, name: "Mike Johnson", subject: "Physics", status: "offline" },
     { id: 3, name: "Emma Davis", subject: "Chemistry", status: "studying" },
   ]
-
-  // Formatting helpers
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60)
-    const secs = seconds % 60
-    return `${mins}:${secs.toString().padStart(2, "0")}`
-  }
-
-  const formatEventTime = (date: Date) => {
-    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-  }
 
   const systemPrompt = `You are an AI-Powered Study Buddy. Your role is to:
 - Help users plan effective study sessions and schedules
@@ -686,10 +503,10 @@ Be encouraging, organized, and focus on helping users develop effective study ha
           {/* Left Panel - Calendar & Timer */}
           <div className="md:col-span-3 space-y-4">
             {/* Pomodoro Timer */}
-            <PomodoroTimer darkMode={darkMode} defaultTime={25} />
+            <PomodoroTimer darkMode={darkMode} />
 
             {/* Calendar */}
-            <CalendarComponent darkMode={darkMode} />
+            <StudyCalendar darkMode={darkMode} />
 
             {/* Study Goals */}
             <Card className={darkMode ? "bg-gray-800 border-gray-700" : ""}>
