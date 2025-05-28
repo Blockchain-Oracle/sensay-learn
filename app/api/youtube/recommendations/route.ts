@@ -2,12 +2,25 @@ import { type NextRequest, NextResponse } from "next/server"
 import { YouTubeService } from "@/lib/services/youtube-service"
 import { checkRateLimit } from "@/lib/cache/upstash-redis"
 
+// Helper function to process Privy IDs for database compatibility
+function processUserId(userId: string): string {
+  // If it's a Privy ID (starts with did:privy:), extract just the unique part
+  if (userId && userId.startsWith("did:privy:")) {
+    return userId.split("did:privy:")[1];
+  }
+  return userId;
+}
 export async function POST(request: NextRequest) {
   try {
     const userId = request.headers.get("x-user-id")
+    if (!userId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
+    const processedUserId = processUserId(userId);
 
     // Rate limiting (allow anonymous users but with stricter limits)
-    const identifier = userId || request.headers.get("x-forwarded-for") || "anonymous"
+    const identifier = processedUserId || request.headers.get("x-forwarded-for") || "anonymous"
     const { success, remaining } = await checkRateLimit(
       `youtube:${identifier}`,
       userId ? 30 : 10, // 30 requests for authenticated users, 10 for anonymous

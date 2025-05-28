@@ -5,6 +5,14 @@ import { db } from "@/lib/db"
 
 const rateLimitMiddleware = createRateLimitMiddleware(10, 3600) // 10 uploads per hour
 
+// Helper function to process Privy IDs for database compatibility
+function processUserId(userId: string): string {
+  // If it's a Privy ID (starts with did:privy:), extract just the unique part
+  if (userId && userId.startsWith("did:privy:")) {
+    return userId.split("did:privy:")[1];
+  }
+  return userId;
+}
 export async function POST(request: NextRequest) {
   try {
     // Apply rate limiting
@@ -15,6 +23,8 @@ export async function POST(request: NextRequest) {
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
+
+    const processedUserId = processUserId(userId);
 
     const formData = await request.formData()
     const file = formData.get("file") as File
@@ -52,7 +62,7 @@ export async function POST(request: NextRequest) {
     // Save file metadata to database
     const mediaFile = await db.mediaFile.create({
       data: {
-        userId,
+        userId: processedUserId,
         filename: fileKey,
         originalFilename: file.name,
         fileType: file.type,
