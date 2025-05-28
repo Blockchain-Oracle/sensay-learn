@@ -26,6 +26,7 @@ interface ChatInterfaceProps {
   suggestedQuestions?: string[]
   onMessageResponse?: (message: string) => void
   apiEndpoint?: string
+  userId: string
 }
 
 export default function ChatInterface({
@@ -37,6 +38,7 @@ export default function ChatInterface({
   suggestedQuestions = [],
   onMessageResponse,
   apiEndpoint = "/api/chat",
+  userId,
 }: ChatInterfaceProps) {
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState("")
@@ -67,7 +69,8 @@ export default function ChatInterface({
             role: msg.role,
             content: msg.content
           })),
-          systemPrompt
+          systemPrompt,
+          userId
         })
       })
       

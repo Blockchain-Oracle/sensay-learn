@@ -40,6 +40,7 @@ import useTextToSpeech from "@/hooks/use-text-to-speech"
 import FlashcardPractice from "./flashcard-practice"
 import PronunciationPracticePage from "./pronunciation-practice"
 import VocabularyManager from "./vocabulary-manager"
+import { useAuth } from "@/hooks/use-auth"
 
 // Add this interface for the pronunciation phrases
 interface PronunciationPhrase {
@@ -49,6 +50,8 @@ interface PronunciationPhrase {
 }
 
 export default function LanguageCoachPage() {
+  const { user } = useAuth()
+  const userId = user?.id || "guest-user"
   const [selectedLanguage, setSelectedLanguage] = useState("spanish")
   const [formalMode, setFormalMode] = useState(false)
   const [darkMode, setDarkMode] = useState(false)
@@ -556,6 +559,7 @@ Be patient, culturally sensitive, and make language learning fun and practical. 
                           "Teach me common greetings",
                           "What's the difference between formal and informal?",
                         ]}
+                        userId={userId}
                       />
                     </div>
                   </Card>

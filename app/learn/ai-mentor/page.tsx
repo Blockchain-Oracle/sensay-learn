@@ -32,7 +32,10 @@ interface AchievementData {
 
 export default function AIMentorPage() {
   const { user } = useAuth()
+  console.log("user", user)
   const userId = user?.id || ""
+  // Get user's name for display, or use a default if not available
+  const userName = user?.twitter?.username || "AI Mentor"
 
   const { progress, isLoading: progressLoading } = useUserProgress(userId, 30)
   const { achievements, isLoading: achievementsLoading } = useAchievements(userId)
@@ -40,18 +43,18 @@ export default function AIMentorPage() {
   const [currentTopic, setCurrentTopic] = useState("web development")
   const [userLevel, setUserLevel] = useState("beginner")
 
-  const systemPrompt = `You are an AI Mentor for lifelong learning. Your role is to:
-- Assess the user's current knowledge and learning goals
+  const systemPrompt = `You are an AI Mentor for ${userName}'s lifelong learning journey. Your role is to:
+- Assess ${userName}'s current knowledge and learning goals
 - Create personalized learning paths based on their interests and objectives
 - Provide guidance, motivation, and support throughout their learning journey
 - Suggest resources, techniques, and strategies for effective learning
-- Help users overcome learning obstacles and stay motivated
-- Adapt your teaching style to match the user's preferred learning methods
+- Help ${userName} overcome learning obstacles and stay motivated
+- Adapt your teaching style to match ${userName}'s preferred learning methods
 
 Current topic focus: ${currentTopic}
 User level: ${userLevel}
 
-Be encouraging, patient, and insightful. Ask thoughtful questions to understand their goals and provide actionable advice.`
+Be encouraging, patient, and insightful. Address the user by name occasionally. Ask thoughtful questions to understand their goals and provide actionable advice.`
 
   // Process live data
   const learningGoals = progress?.filter((p: ProgressData) => p.metricName === "learning_goals") || []
@@ -90,6 +93,16 @@ Be encouraging, patient, and insightful. Ask thoughtful questions to understand 
               <Brain className="h-6 w-6 text-purple-600" />
               <span className="text-xl font-semibold text-gray-900">AI Mentor</span>
             </div>
+            {/* Show user's avatar if logged in */}
+            {user && (
+              <div className="ml-auto flex items-center">
+                <Avatar className="h-8 w-8">
+                  <AvatarFallback className="bg-purple-100 text-purple-600">
+                    {userName.slice(0, 2).toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+              </div>
+            )}
           </div>
         </div>
       </header>
@@ -154,13 +167,12 @@ Be encouraging, patient, and insightful. Ask thoughtful questions to understand 
                   <CardHeader className="pb-4">
                     <div className="flex flex-col sm:flex-row sm:items-center space-y-3 sm:space-y-0 sm:space-x-4">
                       <Avatar className="h-14 w-14 sm:h-16 sm:w-16">
-                        <AvatarImage src="/placeholder.svg?height=64&width=64" />
                         <AvatarFallback className="bg-purple-100 text-purple-600 text-xl">
-                          <Brain className="h-7 w-7 sm:h-8 sm:w-8" />
+                          {user && userName ? userName.slice(0, 1).toUpperCase() : <Brain className="h-7 w-7 sm:h-8 sm:w-8" />}
                         </AvatarFallback>
                       </Avatar>
                       <div>
-                        <h2 className="text-xl font-semibold">Alex - Your AI Mentor</h2>
+                        <h2 className="text-xl font-semibold">{userName} - Your AI Mentor</h2>
                         <p className="text-sm text-gray-600">Ready to guide your learning journey</p>
                         <div className="flex flex-wrap gap-2 mt-2">
                           <Badge variant="outline">Topic: {currentTopic}</Badge>
@@ -183,6 +195,7 @@ Be encouraging, patient, and insightful. Ask thoughtful questions to understand 
                         "What's the best way to learn JavaScript?",
                         "How can I track my progress better?",
                       ]}
+                      userId={userId}
                     />
                   </div>
                 </Card>

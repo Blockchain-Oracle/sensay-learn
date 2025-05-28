@@ -11,6 +11,7 @@ import {
   Volume2, VolumeX, Mic, MicOff, Clock 
 } from "lucide-react"
 import ChatInterface from "@/components/chat-interface"
+import { useAuth } from "@/hooks/use-auth"
 
 // Define types for Web Speech API
 interface SpeechRecognitionEvent extends Event {
@@ -53,6 +54,8 @@ declare global {
 }
 
 export default function MindfulnessCoachPage() {
+  const { user } = useAuth()
+  const userId = user?.id || "guest-user"
   const [selectedMood, setSelectedMood] = useState("")
   const [completedExercises, setCompletedExercises] = useState<number[]>([])
   const [soundEnabled, setSoundEnabled] = useState(true)
@@ -486,6 +489,7 @@ Be compassionate, non-judgmental, and supportive. Always encourage professional 
                     }
                   }}
                   apiEndpoint="/api/chat/mindfulness"
+                  userId={userId}
                 />
               </div>
             </Card>

@@ -33,6 +33,7 @@ import {
 import ChatInterface from "@/components/chat-interface"
 import ThreeDSimulation from "@/components/study-buddy/ThreeDSimulation"
 import DataVisualizer from "@/components/study-buddy/DataVisualizer"
+import { useAuth } from "@/hooks/use-auth"
 
 // Define interfaces for data points
 interface DataPoint {
@@ -43,6 +44,8 @@ interface DataPoint {
 }
 
 export default function ScienceLabPage() {
+  const { user } = useAuth()
+  const userId = user?.id || "guest-user"
   const [selectedExperiment, setSelectedExperiment] = useState("")
   const [experimentPhase, setExperimentPhase] = useState<"setup" | "running" | "analysis" | "complete">("setup")
   const [temperature, setTemperature] = useState([25])
@@ -497,6 +500,7 @@ Current experiment parameters: Temperature: ${temperature[0]}°C, pH: ${pH[0]}, 
                           "How do I interpret these results?",
                           "What should I conclude from this data?",
                         ]}
+                        userId={userId}
                       />
                     </div>
                   </Card>

@@ -1,5 +1,5 @@
 import { google } from "googleapis"
-import { generateChatResponse } from "@/lib/ai/openai"
+import { generateChatResponse } from "@/lib/ai/sensay"
 import { cacheGet, cacheSet } from "@/lib/cache/upstash-redis"
 import { z } from "zod"
 

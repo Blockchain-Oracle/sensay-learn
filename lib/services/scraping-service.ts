@@ -1,6 +1,6 @@
 import * as cheerio from "cheerio"
 import { cacheGet, cacheSet } from "@/lib/cache/upstash-redis"
-import { generateChatResponse } from "@/lib/ai/openai"
+import { generateChatResponse } from "@/lib/ai/sensay"
 
 export interface ScrapedContent {
   title: string

@@ -17,8 +17,11 @@ import {
   Check, AlertTriangle, Info, RefreshCw, BookOpen
 } from "lucide-react"
 import ChatInterface from "@/components/chat-interface"
+import { useAuth } from "@/hooks/use-auth"
 
 export default function DebateCoachPage() {
+  const { user } = useAuth()
+  const userId = user?.id || "guest-user"
   const [selectedTopic, setSelectedTopic] = useState("")
   const [debatePhase, setDebatePhase] = useState<"preparation" | "opening" | "rebuttal" | "closing">("preparation")
   const [timer, setTimer] = useState(180) // 3 minutes
@@ -781,6 +784,7 @@ Be analytical, constructive, and help build strong argumentation skills.`
                         "Suggest evidence for my position",
                         "How do I address this challenging rebuttal?"
                       ]}
+                      userId={userId}
                     />
                   </div>
                 </Card>
