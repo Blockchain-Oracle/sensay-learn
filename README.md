@@ -175,7 +175,68 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 ## 🆘 Support
 
 For support, email support@sensaylearn.com or open an issue on GitHub.
-\`\`\`
+
+## Science Lab 3D Visualizations
+
+We've integrated interactive 3D visualizations into our virtual science lab, allowing learners to engage with scientific experiments in a more intuitive and immersive way. The visualizations are powered by Three.js and React Three Fiber, making it possible to:
+
+- View and interact with realistic 3D models of scientific experiments
+- Observe physical and chemical changes in real-time
+- Manipulate variables and see their effects on the experiment
+- Rotate and explore 3D scenes from different angles
+
+## Dynamic Data Visualizations
+
+The application also features dynamic data visualization powered by D3.js. This allows learners to:
+
+- View real-time data from experiments in graphical form
+- Analyze relationships between variables
+- Observe trends and patterns in experimental data
+- Compare results across different experiments
+
+## Implemented Experiments
+
+The following experiments are currently available with 3D visualizations:
+
+1. **Acid-Base Titration** - Observe color changes and pH shifts during titration
+2. **Simple Pendulum** - Study oscillation patterns and measure periods
+3. **Photosynthesis Rate** - Visualize oxygen production in plants under various conditions
+4. **Density Determination** - Compare floating and sinking behaviors of different materials
+
+## Development
+
+This project uses:
+
+- Next.js as the React framework
+- Three.js and React Three Fiber for 3D visualizations
+- D3.js for data visualization
+- Tailwind CSS for styling
+- TypeScript for type safety
+
+### Getting Started
+
+1. Clone the repository
+2. Install dependencies with pnpm:
+
+```bash
+pnpm install
+```
+
+3. Run the development server:
+
+```bash
+pnpm dev
+```
+
+4. Open [http://localhost:3000](http://localhost:3000) in your browser to see the result.
+
+### Directory Structure
+
+- `/app` - Next.js app router components
+- `/components` - Reusable React components
+  - `/components/study-buddy` - Components specific to the learning features
+- `/lib` - Utility functions and hooks
+- `/public` - Static assets including 3D models
 
 This comprehensive setup provides a production-ready Sensay Learn application with:
 

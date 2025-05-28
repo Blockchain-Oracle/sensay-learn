@@ -31,6 +31,16 @@ import {
   Save,
 } from "lucide-react"
 import ChatInterface from "@/components/chat-interface"
+import ThreeDSimulation from "@/components/study-buddy/ThreeDSimulation"
+import DataVisualizer from "@/components/study-buddy/DataVisualizer"
+
+// Define interfaces for data points
+interface DataPoint {
+  time: number;
+  value: number;
+  unit: string;
+  pH?: number;
+}
 
 export default function ScienceLabPage() {
   const [selectedExperiment, setSelectedExperiment] = useState("")
@@ -40,6 +50,13 @@ export default function ScienceLabPage() {
   const [volume, setVolume] = useState([100])
   const [isExperimentRunning, setIsExperimentRunning] = useState(false)
   const [completedSteps, setCompletedSteps] = useState<number[]>([])
+  const [dataPoints, setDataPoints] = useState<DataPoint[]>([
+    { time: 0, value: 0, unit: "mL", pH: 7.0 },
+    { time: 5, value: 12, unit: "mL", pH: 6.5 },
+    { time: 10, value: 24, unit: "mL", pH: 5.8 },
+    { time: 15, value: 35, unit: "mL", pH: 4.2 },
+    { time: 20, value: 45, unit: "mL", pH: 3.5 },
+  ])
 
   const experiments = [
     {
@@ -102,14 +119,6 @@ export default function ScienceLabPage() {
     { id: 7, title: "Clean up", description: "Properly dispose of materials and clean equipment" },
   ]
 
-  const dataPoints = [
-    { time: 0, value: 0, unit: "mL" },
-    { time: 5, value: 12, unit: "mL" },
-    { time: 10, value: 24, unit: "mL" },
-    { time: 15, value: 35, unit: "mL" },
-    { time: 20, value: 45, unit: "mL" },
-  ]
-
   const currentExperiment = experiments.find((exp) => exp.id === selectedExperiment)
 
   const toggleStep = (stepId: number) => {
@@ -127,6 +136,45 @@ export default function ScienceLabPage() {
 - Encourage scientific curiosity and critical thinking
 
 Current experiment parameters: Temperature: ${temperature[0]}°C, pH: ${pH[0]}, Volume: ${volume[0]}mL. Be enthusiastic about science while maintaining accuracy and safety awareness.`
+
+  // Function to generate additional data points
+  const generateMoreData = () => {
+    if (dataPoints.length >= 10) return // Maximum 10 data points
+    
+    const lastPoint = dataPoints[dataPoints.length - 1]
+    let newValue, newPH
+    
+    switch(selectedExperiment) {
+      case 'acid-base':
+        newValue = Math.min(100, lastPoint.value + Math.floor(Math.random() * 15) + 5)
+        newPH = Math.max(1, (lastPoint.pH || 7) - (Math.random() * 0.8))
+        break
+      case 'pendulum':
+        newValue = lastPoint.value + Math.floor(Math.random() * 5) + 1
+        newPH = undefined
+        break
+      case 'photosynthesis':
+        newValue = lastPoint.value + Math.floor(Math.random() * 8) + 3
+        newPH = undefined
+        break
+      case 'density':
+        newValue = Math.min(100, lastPoint.value + Math.floor(Math.random() * 10))
+        newPH = undefined
+        break
+      default:
+        newValue = lastPoint.value + 10
+        newPH = undefined
+    }
+    
+    const newPoint = {
+      time: lastPoint.time + 5,
+      value: newValue,
+      unit: lastPoint.unit,
+      pH: newPH
+    }
+    
+    setDataPoints([...dataPoints, newPoint])
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -315,13 +363,14 @@ Current experiment parameters: Temperature: ${temperature[0]}°C, pH: ${pH[0]}, 
                     </CardHeader>
                     <CardContent className="space-y-6">
                       {/* Simulation Viewer */}
-                      <div className="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-lg p-8 text-center border-2 border-dashed border-cyan-200">
-                        <FlaskConical className="h-24 w-24 mx-auto mb-4 text-cyan-600" />
-                        <p className="text-lg font-medium text-gray-900 mb-2">Interactive Simulation</p>
-                        <p className="text-sm text-gray-600 mb-4">
-                          3D visualization of {currentExperiment?.title} in progress
-                        </p>
-                        <Badge className="bg-cyan-100 text-cyan-700">Phase: {experimentPhase}</Badge>
+                      <div className="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-lg border-2 border-dashed border-cyan-200 h-64 md:h-80">
+                        <ThreeDSimulation 
+                          experimentId={selectedExperiment}
+                          temperature={temperature[0]}
+                          pH={pH[0]}
+                          volume={volume[0]}
+                          isRunning={isExperimentRunning}
+                        />
                       </div>
 
                       {/* Variable Controls */}
@@ -358,10 +407,18 @@ Current experiment parameters: Temperature: ${temperature[0]}°C, pH: ${pH[0]}, 
                 <TabsContent value="data" className="mt-4">
                   <Card className="h-full">
                     <CardHeader>
-                      <CardTitle className="text-lg flex items-center">
-                        <BarChart3 className="h-5 w-5 mr-2 text-blue-600" />
-                        Data Analysis
-                      </CardTitle>
+                      <div className="flex items-center justify-between">
+                        <CardTitle className="text-lg flex items-center">
+                          <BarChart3 className="h-5 w-5 mr-2 text-blue-600" />
+                          Data Analysis
+                        </CardTitle>
+                        <Button 
+                          size="sm" 
+                          onClick={generateMoreData} 
+                          disabled={!selectedExperiment || dataPoints.length >= 10}>
+                          Collect Data Point
+                        </Button>
+                      </div>
                     </CardHeader>
                     <CardContent className="space-y-6">
                       {/* Data Table */}
@@ -373,7 +430,9 @@ Current experiment parameters: Temperature: ${temperature[0]}°C, pH: ${pH[0]}, 
                               <tr>
                                 <th className="px-4 py-2 text-left text-sm font-medium">Time (min)</th>
                                 <th className="px-4 py-2 text-left text-sm font-medium">Volume (mL)</th>
-                                <th className="px-4 py-2 text-left text-sm font-medium">pH</th>
+                                {selectedExperiment === 'acid-base' && (
+                                  <th className="px-4 py-2 text-left text-sm font-medium">pH</th>
+                                )}
                               </tr>
                             </thead>
                             <tbody>
@@ -381,7 +440,9 @@ Current experiment parameters: Temperature: ${temperature[0]}°C, pH: ${pH[0]}, 
                                 <tr key={index} className="border-t">
                                   <td className="px-4 py-2 text-sm">{point.time}</td>
                                   <td className="px-4 py-2 text-sm">{point.value}</td>
-                                  <td className="px-4 py-2 text-sm">{(7 - point.time * 0.1).toFixed(1)}</td>
+                                  {selectedExperiment === 'acid-base' && (
+                                    <td className="px-4 py-2 text-sm">{point.pH?.toFixed(1) || '-'}</td>
+                                  )}
                                 </tr>
                               ))}
                             </tbody>
@@ -389,15 +450,14 @@ Current experiment parameters: Temperature: ${temperature[0]}°C, pH: ${pH[0]}, 
                         </div>
                       </div>
 
-                      {/* Graph Placeholder */}
-                      <div className="bg-gray-50 rounded-lg p-8 text-center border">
-                        <BarChart3 className="h-16 w-16 mx-auto mb-4 text-gray-400" />
-                        <p className="text-lg font-medium text-gray-900 mb-2">Data Visualization</p>
-                        <p className="text-sm text-gray-600 mb-4">Interactive graphs and charts of your results</p>
-                        <Button size="sm">
-                          <BarChart3 className="h-4 w-4 mr-2" />
-                          Generate Graph
-                        </Button>
+                      {/* Graph Visualization */}
+                      <div className="bg-white rounded-lg p-4 border h-64 md:h-80">
+                        <DataVisualizer 
+                          data={dataPoints} 
+                          experimentId={selectedExperiment} 
+                          width={500} 
+                          height={300}
+                        />
                       </div>
 
                       {/* Analysis Tools */}
