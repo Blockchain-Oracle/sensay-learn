@@ -3,7 +3,7 @@
 import { usePrivy, useLogin, useLogout } from "@privy-io/react-auth"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
-import { syncUserWithDatabase } from "@/lib/auth/user-sync"
+import { syncUser } from "@/lib/auth/user-sync-action"
 
 export function useAuth() {
   const { ready, authenticated, user } = usePrivy()
@@ -38,7 +38,7 @@ export function useAuth() {
   // Sync user with database when authenticated
   useEffect(() => {
     if (authenticated && user && ready) {
-      syncUserWithDatabase(user).catch(console.error)
+      syncUser(user).catch(console.error)
     }
   }, [authenticated, user, ready])
 

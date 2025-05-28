@@ -10,10 +10,11 @@ import { BookOpen, Clock, ExternalLink, RefreshCw, Lightbulb } from "lucide-reac
 interface EducationalContentProps {
   topic: string
   maxResults?: number
+  userId?: string
 }
 
-export function EducationalContent({ topic, maxResults = 5 }: EducationalContentProps) {
-  const { content, loading, error, refetch } = useEducationalContent(topic)
+export function EducationalContent({ topic, maxResults = 5, userId }: EducationalContentProps) {
+  const { content, loading, error, refetch } = useEducationalContent(topic, userId)
 
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {

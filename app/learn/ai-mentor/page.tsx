@@ -174,7 +174,7 @@ Be encouraging, patient, and insightful. Ask thoughtful questions to understand 
               </TabsContent>
 
               <TabsContent value="resources" className="mt-4">
-                <EducationalContent topic={currentTopic} maxResults={5} />
+                <EducationalContent topic={currentTopic} userId={userId} maxResults={5} />
               </TabsContent>
 
               <TabsContent value="recommendations" className="mt-4">
@@ -182,6 +182,7 @@ Be encouraging, patient, and insightful. Ask thoughtful questions to understand 
                   topic={currentTopic}
                   learningMode="ai-mentor"
                   userLevel={userLevel}
+                  userId={userId}
                   maxResults={6}
                 />
               </TabsContent>

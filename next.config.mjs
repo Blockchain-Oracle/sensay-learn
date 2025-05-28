@@ -7,7 +7,7 @@ const nextConfig = {
     ignoreBuildErrors: true,
   },
   experimental: {
-    serverComponentsExternalPackages: ['@prisma/client'],
+    serverExternalPackages: ['@prisma/client', 'prisma'],
   },
   images: {
     domains: [

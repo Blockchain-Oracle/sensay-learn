@@ -1,5 +1,11 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { verifyAuthToken } from "@privy-io/server-auth"
+import { PrivyClient } from "@privy-io/server-auth"
+
+
+const privy = new PrivyClient(
+  process.env.NEXT_PUBLIC_PRIVY_APP_ID || '',
+  process.env.PRIVY_APP_SECRET || ''
+);
 
 export async function middleware(request: NextRequest) {
   const token = request.cookies.get("privy-token")?.value
@@ -16,7 +22,7 @@ export async function middleware(request: NextRequest) {
     }
 
     try {
-      const claims = await verifyAuthToken(token, process.env.PRIVY_APP_SECRET!)
+      const claims = await privy.verifyAuthToken(token)
 
       // Add user info to headers for API routes
       const response = NextResponse.next()

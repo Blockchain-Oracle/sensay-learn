@@ -1,11 +1,16 @@
-import { type NextRequest, NextResponse } from "next/server"
+import { NextRequest, NextResponse } from "next/server"
 
 // This would normally be in environment variables
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY || ''
 
-export async function POST(request: NextRequest) {
+interface Message {
+  role: string
+  content: string
+}
+
+export async function POST(req: NextRequest) {
   try {
-    const { messages, systemPrompt } = await request.json()
+    const { messages, systemPrompt } = await req.json()
 
     if (!messages || !systemPrompt) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
@@ -15,7 +20,7 @@ export async function POST(request: NextRequest) {
     const lastUserMessage = messages[messages.length - 1].content
     
     // Simulate processing for demo purposes
-    await new Promise(resolve => setTimeout(resolve, 1000))
+    await new Promise((resolve) => setTimeout(resolve, 1000))
     
     // Provide a simulated response
     let response = ''
@@ -44,7 +49,7 @@ export async function POST(request: NextRequest) {
         // Format the messages for the OpenAI API
         const formattedMessages = [
           { role: 'system', content: systemPrompt },
-          ...messages.map(msg => ({
+          ...messages.map((msg: Message) => ({
             role: msg.role,
             content: msg.content
           }))
@@ -77,7 +82,7 @@ export async function POST(request: NextRequest) {
     
     return NextResponse.json({ response })
   } catch (error) {
-    console.error("Chat API error:", error)
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+    console.error("Error in mindfulness chat API:", error)
+    return NextResponse.json({ error: "Failed to process request" }, { status: 500 })
   }
-}
+} 

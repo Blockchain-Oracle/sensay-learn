@@ -14,6 +14,7 @@ interface YouTubeRecommendationsProps {
   learningMode: string
   userLevel?: string
   maxResults?: number
+  userId?: string
 }
 
 export function YouTubeRecommendations({
@@ -21,8 +22,9 @@ export function YouTubeRecommendations({
   learningMode,
   userLevel = "beginner",
   maxResults = 6,
+  userId,
 }: YouTubeRecommendationsProps) {
-  const { recommendations, loading, error, refetch } = useYouTubeRecommendations(topic, learningMode, userLevel)
+  const { recommendations, loading, error, refetch } = useYouTubeRecommendations(topic, learningMode, userLevel, userId)
   const [selectedVideo, setSelectedVideo] = useState<VideoRecommendation | null>(null)
 
   const formatDuration = (duration: string) => {

@@ -2,21 +2,36 @@
 
 import { useState, useEffect, useCallback } from "react"
 import useSWR from "swr"
-import type { VideoRecommendation } from "@/lib/services/youtube-service"
-import type { ScrapedContent } from "@/lib/services/scraping-service"
+import type { VideoRecommendation, ScrapedContent } from "@/lib/services/client"
+import { ClientYouTubeService, ClientScrapingService } from "@/lib/services/client"
 
-// Generic fetcher for SWR
-const fetcher = (url: string) => fetch(url).then((res) => res.json())
+// Enhanced fetcher for SWR that includes auth headers
+const fetcher = (url: string, userId?: string) => {
+  const headers: HeadersInit = {
+    'Content-Type': 'application/json'
+  }
+  
+  // Add auth header if userId is provided
+  if (userId) {
+    headers['x-user-id'] = userId
+  }
+  
+  return fetch(url, { headers }).then((res) => res.json())
+}
 
 // User Progress Hook
 export function useUserProgress(userId: string, days = 30) {
-  const { data, error, mutate } = useSWR(userId ? `/api/user/progress?days=${days}` : null, fetcher, {
-    refreshInterval: 30000, // Refresh every 30 seconds
-    revalidateOnFocus: true,
-  })
+  const { data, error, mutate } = useSWR(
+    userId ? [`/api/user/progress?days=${days}`, userId] : null, 
+    ([url, id]) => fetcher(url, id),
+    {
+      refreshInterval: 30000, // Refresh every 30 seconds
+      revalidateOnFocus: true,
+    }
+  )
 
   return {
-    progress: data,
+    progress: data?.progress || [],
     isLoading: !error && !data,
     isError: error,
     mutate,
@@ -25,16 +40,23 @@ export function useUserProgress(userId: string, days = 30) {
 
 // Study Sessions Hook
 export function useStudySessions(userId: string) {
-  const { data, error, mutate } = useSWR(userId ? `/api/user/sessions` : null, fetcher, {
-    refreshInterval: 60000, // Refresh every minute
-  })
+  const { data, error, mutate } = useSWR(
+    userId ? [`/api/user/sessions`, userId] : null, 
+    ([url, id]) => fetcher(url, id),
+    {
+      refreshInterval: 60000, // Refresh every minute
+    }
+  )
 
   const createSession = useCallback(
     async (sessionData: any) => {
       try {
         const response = await fetch("/api/user/sessions", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            "x-user-id": userId
+          },
           body: JSON.stringify(sessionData),
         })
 
@@ -46,11 +68,11 @@ export function useStudySessions(userId: string) {
         console.error("Error creating session:", error)
       }
     },
-    [mutate],
+    [mutate, userId],
   )
 
   return {
-    sessions: data,
+    sessions: data?.sessions || [],
     isLoading: !error && !data,
     isError: error,
     createSession,
@@ -59,7 +81,7 @@ export function useStudySessions(userId: string) {
 }
 
 // YouTube Recommendations Hook
-export function useYouTubeRecommendations(topic: string, learningMode: string, userLevel = "beginner") {
+export function useYouTubeRecommendations(topic: string, learningMode: string, userLevel = "beginner", userId?: string) {
   const [recommendations, setRecommendations] = useState<VideoRecommendation[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -71,25 +93,15 @@ export function useYouTubeRecommendations(topic: string, learningMode: string, u
     setError(null)
 
     try {
-      const response = await fetch("/api/youtube/recommendations", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ topic, learningMode, userLevel }),
-      })
-
-      if (response.ok) {
-        const data = await response.json()
-        setRecommendations(data.recommendations || [])
-      } else {
-        setError("Failed to fetch recommendations")
-      }
+      const results = await ClientYouTubeService.getRecommendations(topic, learningMode, userLevel, 10, userId)
+      setRecommendations(results)
     } catch (err) {
-      setError("Network error")
+      setError("Failed to fetch recommendations")
       console.error("YouTube recommendations error:", err)
     } finally {
       setLoading(false)
     }
-  }, [topic, learningMode, userLevel])
+  }, [topic, learningMode, userLevel, userId])
 
   useEffect(() => {
     fetchRecommendations()
@@ -104,7 +116,7 @@ export function useYouTubeRecommendations(topic: string, learningMode: string, u
 }
 
 // Educational Content Hook
-export function useEducationalContent(topic: string) {
+export function useEducationalContent(topic: string, userId?: string) {
   const [content, setContent] = useState<ScrapedContent[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -116,25 +128,15 @@ export function useEducationalContent(topic: string) {
     setError(null)
 
     try {
-      const response = await fetch("/api/content/educational", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ topic }),
-      })
-
-      if (response.ok) {
-        const data = await response.json()
-        setContent(data.content || [])
-      } else {
-        setError("Failed to fetch educational content")
-      }
+      const results = await ClientScrapingService.getEducationalContent(topic, 5, userId)
+      setContent(results)
     } catch (err) {
-      setError("Network error")
+      setError("Failed to fetch educational content")
       console.error("Educational content error:", err)
     } finally {
       setLoading(false)
     }
-  }, [topic])
+  }, [topic, userId])
 
   useEffect(() => {
     fetchContent()
@@ -150,13 +152,17 @@ export function useEducationalContent(topic: string) {
 
 // Real-time Analytics Hook
 export function useAnalytics(userId: string, timeframe = "week") {
-  const { data, error, mutate } = useSWR(userId ? `/api/analytics?timeframe=${timeframe}` : null, fetcher, {
-    refreshInterval: 60000, // Refresh every minute
-    revalidateOnFocus: true,
-  })
+  const { data, error, mutate } = useSWR(
+    userId ? [`/api/analytics?timeframe=${timeframe}`, userId] : null, 
+    ([url, id]) => fetcher(url, id),
+    {
+      refreshInterval: 60000, // Refresh every minute
+      revalidateOnFocus: true,
+    }
+  )
 
   return {
-    analytics: data,
+    analytics: data?.analytics || {},
     isLoading: !error && !data,
     isError: error,
     mutate,
@@ -165,12 +171,16 @@ export function useAnalytics(userId: string, timeframe = "week") {
 
 // Language Progress Hook
 export function useLanguageProgress(userId: string) {
-  const { data, error, mutate } = useSWR(userId ? `/api/user/language-progress` : null, fetcher, {
-    refreshInterval: 300000, // Refresh every 5 minutes
-  })
+  const { data, error, mutate } = useSWR(
+    userId ? [`/api/user/language-progress`, userId] : null, 
+    ([url, id]) => fetcher(url, id),
+    {
+      refreshInterval: 300000, // Refresh every 5 minutes
+    }
+  )
 
   return {
-    languageProgress: data,
+    languageProgress: data?.languageProgress || [],
     isLoading: !error && !data,
     isError: error,
     mutate,
@@ -179,12 +189,16 @@ export function useLanguageProgress(userId: string) {
 
 // Achievements Hook
 export function useAchievements(userId: string) {
-  const { data, error, mutate } = useSWR(userId ? `/api/user/achievements` : null, fetcher, {
-    refreshInterval: 300000, // Refresh every 5 minutes
-  })
+  const { data, error, mutate } = useSWR(
+    userId ? [`/api/user/achievements`, userId] : null, 
+    ([url, id]) => fetcher(url, id),
+    {
+      refreshInterval: 300000, // Refresh every 5 minutes
+    }
+  )
 
   return {
-    achievements: data,
+    achievements: data?.achievements || [],
     isLoading: !error && !data,
     isError: error,
     mutate,
@@ -193,9 +207,13 @@ export function useAchievements(userId: string) {
 
 // Leaderboard Hook
 export function useLeaderboard(category = "overall", limit = 10) {
-  const { data, error, mutate } = useSWR(`/api/leaderboard?category=${category}&limit=${limit}`, fetcher, {
-    refreshInterval: 60000, // Refresh every minute
-  })
+  const { data, error, mutate } = useSWR(
+    `/api/leaderboard?category=${category}&limit=${limit}`, 
+    fetcher,
+    {
+      refreshInterval: 60000, // Refresh every minute
+    }
+  )
 
   return {
     leaderboard: data?.leaderboard || [],

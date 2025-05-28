@@ -24,6 +24,8 @@ interface ChatInterfaceProps {
   systemPrompt: string
   placeholderMessage?: string
   suggestedQuestions?: string[]
+  onMessageResponse?: (message: string) => void
+  apiEndpoint?: string
 }
 
 export default function ChatInterface({
@@ -33,6 +35,8 @@ export default function ChatInterface({
   systemPrompt,
   placeholderMessage = "Type your message here...",
   suggestedQuestions = [],
+  onMessageResponse,
+  apiEndpoint = "/api/chat",
 }: ChatInterfaceProps) {
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState("")
@@ -54,28 +58,39 @@ export default function ChatInterface({
     setIsLoading(true)
 
     try {
-      // Placeholder for AI API integration
-      // In a real implementation, you would call your AI API here
-      // const response = await fetch('/api/chat', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({
-      //     messages: [...messages, userMessage],
-      //     systemPrompt
-      //   })
-      // })
-
-      // Simulated AI response for demo purposes
-      await new Promise((resolve) => setTimeout(resolve, 1000))
+      // Make a real API call to OpenAI or another AI service
+      const response = await fetch(apiEndpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          messages: [...messages, userMessage].map(msg => ({
+            role: msg.role,
+            content: msg.content
+          })),
+          systemPrompt
+        })
+      })
+      
+      if (!response.ok) {
+        throw new Error('Failed to get AI response')
+      }
+      
+      const data = await response.json()
+      const responseContent = data.response || "Sorry, I couldn't generate a response."
 
       const aiMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: "assistant",
-        content: `This is a simulated response for the ${title}. In a real implementation, this would be powered by an AI API that responds based on the system prompt: "${systemPrompt.substring(0, 100)}..."\n\nYour message: "${userMessage.content}"`,
+        content: responseContent,
         timestamp: new Date(),
       }
 
       setMessages((prev) => [...prev, aiMessage])
+      
+      // Call the callback with the response if it exists
+      if (onMessageResponse) {
+        onMessageResponse(responseContent)
+      }
     } catch (error) {
       console.error("Error sending message:", error)
       const errorMessage: Message = {

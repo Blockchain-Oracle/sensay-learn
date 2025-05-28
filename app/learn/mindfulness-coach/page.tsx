@@ -1,18 +1,205 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, useRef } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
-import { ArrowLeft, Heart, Smile, Frown, Meh, Zap, Moon, Volume2, VolumeX } from "lucide-react"
+import { 
+  ArrowLeft, Heart, Smile, Frown, Meh, Zap, Moon, 
+  Volume2, VolumeX, Mic, MicOff, Clock 
+} from "lucide-react"
 import ChatInterface from "@/components/chat-interface"
+
+// Define types for Web Speech API
+interface SpeechRecognitionEvent extends Event {
+  results: SpeechRecognitionResultList;
+  resultIndex: number;
+  error: any;
+}
+
+interface SpeechRecognitionResult {
+  isFinal: boolean;
+  [index: number]: SpeechRecognitionAlternative;
+}
+
+interface SpeechRecognitionResultList {
+  [index: number]: SpeechRecognitionResult;
+  length: number;
+}
+
+interface SpeechRecognitionAlternative {
+  transcript: string;
+  confidence: number;
+}
+
+interface SpeechRecognition extends EventTarget {
+  continuous: boolean;
+  interimResults: boolean;
+  lang: string;
+  start(): void;
+  stop(): void;
+  abort(): void;
+  onerror: (event: SpeechRecognitionEvent) => void;
+  onresult: (event: SpeechRecognitionEvent) => void;
+}
+
+declare global {
+  interface Window {
+    SpeechRecognition: new () => SpeechRecognition;
+    webkitSpeechRecognition: new () => SpeechRecognition;
+  }
+}
 
 export default function MindfulnessCoachPage() {
   const [selectedMood, setSelectedMood] = useState("")
   const [completedExercises, setCompletedExercises] = useState<number[]>([])
   const [soundEnabled, setSoundEnabled] = useState(true)
+  const [isListening, setIsListening] = useState(false)
+  const [transcript, setTranscript] = useState("")
+  const [activeBreathingSession, setActiveBreathingSession] = useState(false)
+  const [breathingPhase, setBreathingPhase] = useState<"inhale" | "hold" | "exhale">("inhale")
+  const [breathingCount, setBreathingCount] = useState(0)
+
+  // Refs for speech recognition and synthesis
+  const recognitionRef = useRef<SpeechRecognition | null>(null)
+  const synthRef = useRef<SpeechSynthesis | null>(null)
+  const ambientSoundRef = useRef<HTMLAudioElement | null>(null)
+
+  // Initialize speech recognition and synthesis
+  useEffect(() => {
+    // Check if browser supports speech recognition and synthesis
+    if (typeof window !== 'undefined') {
+      if ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window) {
+        const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition
+        recognitionRef.current = new SpeechRecognitionAPI()
+        
+        if (recognitionRef.current) {
+          recognitionRef.current.continuous = true
+          recognitionRef.current.interimResults = true
+          
+          recognitionRef.current.onresult = (event: SpeechRecognitionEvent) => {
+            const result = event.results[event.results.length - 1]
+            if (result.isFinal) {
+              setTranscript(result[0].transcript)
+            }
+          }
+          
+          recognitionRef.current.onerror = (event: SpeechRecognitionEvent) => {
+            console.error('Speech recognition error', event.error)
+            setIsListening(false)
+          }
+        }
+      }
+      
+      // Initialize speech synthesis
+      if ('speechSynthesis' in window) {
+        synthRef.current = window.speechSynthesis
+      }
+    }
+    
+    // Initialize ambient sound
+    ambientSoundRef.current = new Audio('/sounds/ambient-meditation.mp3')
+    ambientSoundRef.current.loop = true
+    
+    return () => {
+      // Cleanup
+      if (recognitionRef.current) {
+        recognitionRef.current.stop()
+      }
+      if (synthRef.current) {
+        synthRef.current.cancel()
+      }
+      if (ambientSoundRef.current) {
+        ambientSoundRef.current.pause()
+      }
+    }
+  }, [])
+
+  // Handle sound toggle
+  useEffect(() => {
+    if (ambientSoundRef.current) {
+      if (soundEnabled) {
+        ambientSoundRef.current.play().catch(e => console.error("Audio play failed:", e))
+      } else {
+        ambientSoundRef.current.pause()
+      }
+    }
+  }, [soundEnabled])
+
+  // Handle breathing animation
+  useEffect(() => {
+    if (!activeBreathingSession) return
+    
+    let timer: NodeJS.Timeout
+    
+    if (breathingPhase === "inhale") {
+      speak("Breathe in")
+      timer = setTimeout(() => {
+        setBreathingPhase("hold")
+        setBreathingCount(0)
+      }, 4000)
+    } else if (breathingPhase === "hold") {
+      speak("Hold")
+      timer = setTimeout(() => {
+        setBreathingPhase("exhale")
+        setBreathingCount(0)
+      }, 7000)
+    } else {
+      speak("Breathe out")
+      timer = setTimeout(() => {
+        setBreathingPhase("inhale")
+        setBreathingCount(prev => prev + 1)
+        
+        // End session after 5 cycles
+        if (breathingCount >= 4) {
+          setActiveBreathingSession(false)
+          speak("Great job. Breathing exercise complete.")
+        }
+      }, 8000)
+    }
+    
+    return () => clearTimeout(timer)
+  }, [breathingPhase, activeBreathingSession, breathingCount])
+
+  // Toggle speech recognition
+  const toggleListening = () => {
+    if (isListening) {
+      if (recognitionRef.current) {
+        recognitionRef.current.stop()
+      }
+      setIsListening(false)
+    } else {
+      if (recognitionRef.current) {
+        recognitionRef.current.start()
+      }
+      setIsListening(true)
+    }
+  }
+
+  // Text-to-speech function
+  const speak = (text: string) => {
+    if (!synthRef.current || !soundEnabled) return
+    
+    // Cancel any ongoing speech
+    synthRef.current.cancel()
+    
+    const utterance = new SpeechSynthesisUtterance(text)
+    utterance.rate = 0.9 // Slightly slower for mindfulness
+    utterance.pitch = 1
+    utterance.volume = 1
+    
+    synthRef.current.speak(utterance)
+  }
+
+  // Start a guided breathing session
+  const startBreathingExercise = () => {
+    setActiveBreathingSession(true)
+    setBreathingPhase("inhale")
+    setBreathingCount(0)
+    speak("Let's begin our 4-7-8 breathing exercise. Get comfortable and we'll start with breathing in for 4 seconds.")
+  }
 
   const moods = [
     { id: "happy", label: "Happy", icon: Smile, color: "bg-green-100 text-green-600 border-green-200" },
@@ -29,6 +216,7 @@ export default function MindfulnessCoachPage() {
       duration: "5 min",
       category: "Breathing",
       description: "Inhale for 4, hold for 7, exhale for 8",
+      action: startBreathingExercise
     },
     {
       id: 2,
@@ -36,6 +224,7 @@ export default function MindfulnessCoachPage() {
       duration: "10 min",
       category: "Meditation",
       description: "Progressive relaxation from head to toe",
+      action: () => speak("Let's begin a body scan meditation. Start by focusing on the top of your head and slowly move your attention down through your body, noticing any sensations without judgment.")
     },
     {
       id: 3,
@@ -43,6 +232,7 @@ export default function MindfulnessCoachPage() {
       duration: "8 min",
       category: "Journaling",
       description: "Write down 3 things you're grateful for",
+      action: () => speak("Take a moment to reflect on three things you're grateful for today. Consider writing them down in a journal.")
     },
     {
       id: 4,
@@ -50,6 +240,7 @@ export default function MindfulnessCoachPage() {
       duration: "15 min",
       category: "Movement",
       description: "Focus on each step and breath",
+      action: () => speak("For mindful walking, find a space where you can walk slowly. Focus on the sensation of each step, the feeling of your feet touching the ground, and your breath as you move.")
     },
     {
       id: 5,
@@ -57,6 +248,7 @@ export default function MindfulnessCoachPage() {
       duration: "12 min",
       category: "Relaxation",
       description: "Tense and release muscle groups",
+      action: () => speak("Let's begin progressive muscle relaxation. We'll work through each muscle group, tensing for 5 seconds and then releasing completely.")
     },
     {
       id: 6,
@@ -64,6 +256,7 @@ export default function MindfulnessCoachPage() {
       duration: "7 min",
       category: "Meditation",
       description: "Send compassion to yourself and others",
+      action: () => speak("Let's practice loving-kindness meditation. Begin by directing positive wishes toward yourself. May I be happy. May I be healthy. May I be safe.")
     },
   ]
 
@@ -79,9 +272,16 @@ export default function MindfulnessCoachPage() {
 Be compassionate, non-judgmental, and supportive. Always encourage professional help when needed.`
 
   const toggleExercise = (exerciseId: number) => {
+    const exercise = exercises.find(ex => ex.id === exerciseId)
+    
     setCompletedExercises((prev) =>
       prev.includes(exerciseId) ? prev.filter((id) => id !== exerciseId) : [...prev, exerciseId],
     )
+    
+    // If exercise is being completed, trigger its action
+    if (!completedExercises.includes(exerciseId) && exercise?.action) {
+      exercise.action()
+    }
   }
 
   const getMoodBasedSuggestions = () => {
@@ -104,6 +304,31 @@ Be compassionate, non-judgmental, and supportive. Always encourage professional 
         return ["How are you feeling today?", "Guide me through a mindfulness exercise", "Help me practice gratitude"]
     }
   }
+
+  // Handle changing mood with voice
+  useEffect(() => {
+    if (!transcript) return
+    
+    const lowerTranscript = transcript.toLowerCase()
+    
+    // Check for mood keywords
+    moods.forEach(mood => {
+      if (lowerTranscript.includes(`feeling ${mood.id}`) || 
+          lowerTranscript.includes(`i'm ${mood.id}`) || 
+          lowerTranscript.includes(`i am ${mood.id}`)) {
+        setSelectedMood(mood.id)
+        speak(`I understand you're feeling ${mood.id}. Let me suggest some exercises that might help.`)
+      }
+    })
+    
+    // Check for exercise keywords
+    if (lowerTranscript.includes("breathing exercise") || lowerTranscript.includes("four seven eight")) {
+      startBreathingExercise()
+    }
+    
+    // Reset transcript after processing
+    setTranscript("")
+  }, [transcript, moods])
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-purple-50">
@@ -131,10 +356,27 @@ Be compassionate, non-judgmental, and supportive. Always encourage professional 
               </div>
             </div>
 
-            {/* Sound Toggle */}
-            <Button variant="outline" size="sm" onClick={() => setSoundEnabled(!soundEnabled)}>
-              {soundEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
-            </Button>
+            <div className="flex items-center space-x-2">
+              {/* Voice Recognition Toggle */}
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={toggleListening}
+                className={isListening ? "bg-green-50 text-green-600" : ""}
+              >
+                {isListening ? <Mic className="h-4 w-4" /> : <MicOff className="h-4 w-4" />}
+              </Button>
+              
+              {/* Sound Toggle */}
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => setSoundEnabled(!soundEnabled)}
+                className={soundEnabled ? "bg-blue-50 text-blue-600" : ""}
+              >
+                {soundEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
+              </Button>
+            </div>
           </div>
         </div>
       </header>
@@ -154,7 +396,10 @@ Be compassionate, non-judgmental, and supportive. Always encourage professional 
                     key={mood.id}
                     variant={selectedMood === mood.id ? "default" : "outline"}
                     className={`${mood.color} ${selectedMood === mood.id ? "ring-2 ring-green-500" : ""}`}
-                    onClick={() => setSelectedMood(mood.id)}
+                    onClick={() => {
+                      setSelectedMood(mood.id)
+                      speak(`I understand you're feeling ${mood.label}. Let me suggest some exercises that might help.`)
+                    }}
                   >
                     <IconComponent className="h-4 w-4 mr-2" />
                     {mood.label}
@@ -177,7 +422,12 @@ Be compassionate, non-judgmental, and supportive. Always encourage professional 
               </CardHeader>
               <CardContent className="space-y-3 overflow-y-auto">
                 {exercises.map((exercise) => (
-                  <div key={exercise.id} className="flex items-start space-x-3 p-3 hover:bg-green-50 rounded border">
+                  <div 
+                    key={exercise.id} 
+                    className={`flex items-start space-x-3 p-3 hover:bg-green-50 rounded border transition-all ${
+                      completedExercises.includes(exercise.id) ? "bg-green-50 border-green-300" : ""
+                    }`}
+                  >
                     <Checkbox
                       checked={completedExercises.includes(exercise.id)}
                       onCheckedChange={() => toggleExercise(exercise.id)}
@@ -230,15 +480,64 @@ Be compassionate, non-judgmental, and supportive. Always encourage professional 
                   systemPrompt={systemPrompt}
                   placeholderMessage="Tell me how you're feeling or ask for guidance..."
                   suggestedQuestions={getMoodBasedSuggestions()}
+                  onMessageResponse={(message) => {
+                    if (soundEnabled) {
+                      speak(message)
+                    }
+                  }}
+                  apiEndpoint="/api/chat/mindfulness"
                 />
               </div>
             </Card>
           </div>
         </div>
 
-        {/* Breathing Animation Overlay */}
-        {selectedMood === "stressed" && (
-          <div className="fixed bottom-8 right-8 z-20">
+        {/* Breathing Exercise Overlay */}
+        {activeBreathingSession && (
+          <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
+            <div className="bg-white rounded-xl p-8 max-w-md text-center">
+              <h2 className="text-2xl font-semibold mb-6">4-7-8 Breathing</h2>
+              
+              <div className="relative w-40 h-40 mx-auto mb-8">
+                <div 
+                  className={`absolute inset-0 bg-blue-500 rounded-full transition-all duration-[4000ms] ${
+                    breathingPhase === "inhale" 
+                      ? "scale-100 opacity-70" 
+                      : breathingPhase === "hold" 
+                        ? "scale-100 opacity-70 border-4 border-green-500" 
+                        : "scale-50 opacity-40"
+                  }`}
+                ></div>
+                <div className="absolute inset-0 flex items-center justify-center text-white font-bold text-xl">
+                  {breathingPhase === "inhale" ? "Inhale" : breathingPhase === "hold" ? "Hold" : "Exhale"}
+                </div>
+              </div>
+              
+              <p className="text-lg mb-2">
+                {breathingPhase === "inhale" ? "Breathe in through your nose" : 
+                 breathingPhase === "hold" ? "Hold your breath" : 
+                 "Exhale slowly through your mouth"}
+              </p>
+              
+              <div className="flex justify-center mb-6">
+                <Badge className="text-lg px-4 py-2">
+                  Cycle: {breathingCount + 1}/5
+                </Badge>
+              </div>
+              
+              <Button 
+                variant="outline" 
+                onClick={() => setActiveBreathingSession(false)}
+              >
+                End Session
+              </Button>
+            </div>
+          </div>
+        )}
+        
+        {/* Breathing Animation Overlay (non-interactive version) */}
+        {selectedMood === "stressed" && !activeBreathingSession && (
+          <div className="fixed bottom-8 right-8 z-20 cursor-pointer" onClick={startBreathingExercise}>
             <div className="relative">
               <div className="w-20 h-20 bg-green-400 rounded-full opacity-30 animate-ping"></div>
               <div className="absolute inset-0 w-20 h-20 bg-green-500 rounded-full opacity-50 animate-pulse"></div>
