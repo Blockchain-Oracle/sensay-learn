@@ -2,6 +2,15 @@ import { type NextRequest, NextResponse } from "next/server"
 import { getLeaderboard, updateLeaderboard } from "@/lib/cache/upstash-redis"
 import { db } from "@/lib/db"
 
+// Helper function to process Privy IDs for database compatibility
+function processUserId(userId: string): string {
+  // If it's a Privy ID (starts with did:privy:), extract just the unique part
+  if (userId && userId.startsWith("did:privy:")) {
+    return userId.split("did:privy:")[1];
+  }
+  return userId;
+}
+
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
@@ -14,8 +23,10 @@ export async function GET(request: NextRequest) {
     // Enrich with user data from database
     const enrichedLeaderboard = await Promise.all(
       leaderboard.map(async (entry) => {
+        const processedUserId = processUserId(entry.userId);
+        
         const user = await db.user.findUnique({
-          where: { id: entry.userId },
+          where: { id: processedUserId },
           select: { displayName: true, avatarUrl: true },
         })
 
@@ -44,6 +55,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
+    const processedUserId = processUserId(userId);
+    
     const { category, score } = await request.json()
 
     if (!category || typeof score !== "number") {
@@ -51,7 +64,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Update leaderboard in Redis
-    await updateLeaderboard(category, userId, score)
+    await updateLeaderboard(category, processedUserId, score)
 
     return NextResponse.json({ success: true })
   } catch (error) {

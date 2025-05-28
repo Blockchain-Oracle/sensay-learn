@@ -20,10 +20,20 @@ const StudySessionSchema = z.object({
   status: z.enum(["scheduled", "active", "completed", "cancelled"]),
 })
 
+// Helper function to process Privy IDs for database compatibility
+function processUserId(userId: string): string {
+  // If it's a Privy ID (starts with did:privy:), extract just the unique part
+  if (userId && userId.startsWith("did:privy:")) {
+    return userId.split("did:privy:")[1];
+  }
+  return userId;
+}
+
 export class DataService {
   // User Progress Methods
   static async getUserProgress(userId: string, days = 30) {
-    const cacheKey = `user_progress:${userId}:${days}`
+    const processedUserId = processUserId(userId);
+    const cacheKey = `user_progress:${processedUserId}:${days}`
     const cached = await cacheGet(cacheKey)
 
     if (cached) return cached
@@ -33,7 +43,7 @@ export class DataService {
 
     const progress = await db.userProgress.findMany({
       where: {
-        userId,
+        userId: processedUserId,
         date: { gte: startDate },
       },
       orderBy: { date: "desc" },
@@ -44,35 +54,37 @@ export class DataService {
   }
 
   static async updateUserProgress(data: z.infer<typeof UserProgressSchema>) {
-    const validated = UserProgressSchema.parse(data)
+    const validated = UserProgressSchema.parse(data);
+    const processedUserId = processUserId(validated.userId);
 
     const progress = await db.userProgress.upsert({
       where: {
         userId_learningMode_metricName_date: {
-          userId: validated.userId,
+          userId: processedUserId,
           learningMode: validated.learningMode,
           metricName: validated.metricName,
           date: validated.date,
         },
       },
       update: { metricValue: validated.metricValue },
-      create: validated,
+      create: { ...validated, userId: processedUserId },
     })
 
     // Invalidate cache
-    await cacheSet(`user_progress:${validated.userId}:30`, null, 1)
+    await cacheSet(`user_progress:${processedUserId}:30`, null, 1)
     return progress
   }
 
   // Study Sessions Methods
   static async getUserStudySessions(userId: string, limit = 10) {
-    const cacheKey = `study_sessions:${userId}:${limit}`
+    const processedUserId = processUserId(userId);
+    const cacheKey = `study_sessions:${processedUserId}:${limit}`
     const cached = await cacheGet(cacheKey)
 
     if (cached) return cached
 
     const sessions = await db.studySession.findMany({
-      where: { userId },
+      where: { userId: processedUserId },
       orderBy: { createdAt: "desc" },
       take: limit,
     })
@@ -82,30 +94,33 @@ export class DataService {
   }
 
   static async createStudySession(data: z.infer<typeof StudySessionSchema>) {
-    const validated = StudySessionSchema.parse(data)
+    const validated = StudySessionSchema.parse(data);
+    const processedUserId = processUserId(validated.userId);
 
     const session = await db.studySession.create({
       data: {
         ...validated,
+        userId: processedUserId,
         actualStart: new Date(),
       },
     })
 
     // Invalidate cache
-    await cacheSet(`study_sessions:${validated.userId}:10`, null, 1)
+    await cacheSet(`study_sessions:${processedUserId}:10`, null, 1)
     return session
   }
 
   // Learning Profile Methods
   static async getUserLearningProfile(userId: string, learningMode: string) {
-    const cacheKey = `learning_profile:${userId}:${learningMode}`
+    const processedUserId = processUserId(userId);
+    const cacheKey = `learning_profile:${processedUserId}:${learningMode}`
     const cached = await cacheGet(cacheKey)
 
     if (cached) return cached
 
     const profile = await db.learningProfile.findUnique({
       where: {
-        userId_learningMode: { userId, learningMode },
+        userId_learningMode: { userId: processedUserId, learningMode },
       },
     })
 
@@ -115,13 +130,14 @@ export class DataService {
 
   // Achievements Methods
   static async getUserAchievements(userId: string) {
-    const cacheKey = `achievements:${userId}`
+    const processedUserId = processUserId(userId);
+    const cacheKey = `achievements:${processedUserId}`
     const cached = await cacheGet(cacheKey)
 
     if (cached) return cached
 
     const achievements = await db.userAchievement.findMany({
-      where: { userId },
+      where: { userId: processedUserId },
       include: { achievement: true },
       orderBy: { earnedAt: "desc" },
     })
@@ -132,14 +148,15 @@ export class DataService {
 
   // Chat Conversations Methods
   static async getUserConversations(userId: string, learningMode?: string) {
-    const cacheKey = `conversations:${userId}:${learningMode || "all"}`
+    const processedUserId = processUserId(userId);
+    const cacheKey = `conversations:${processedUserId}:${learningMode || "all"}`
     const cached = await cacheGet(cacheKey)
 
     if (cached) return cached
 
     const conversations = await db.chatConversation.findMany({
       where: {
-        userId,
+        userId: processedUserId,
         ...(learningMode && { learningMode }),
       },
       include: {
@@ -158,13 +175,14 @@ export class DataService {
 
   // Language Progress Methods
   static async getLanguageProgress(userId: string) {
-    const cacheKey = `language_progress:${userId}`
+    const processedUserId = processUserId(userId);
+    const cacheKey = `language_progress:${processedUserId}`
     const cached = await cacheGet(cacheKey)
 
     if (cached) return cached
 
     const progress = await db.languageProgress.findMany({
-      where: { userId },
+      where: { userId: processedUserId },
       include: { language: true },
     })
 
@@ -174,14 +192,15 @@ export class DataService {
 
   // Vocabulary Methods
   static async getUserVocabulary(userId: string, languageId?: string) {
-    const cacheKey = `vocabulary:${userId}:${languageId || "all"}`
+    const processedUserId = processUserId(userId);
+    const cacheKey = `vocabulary:${processedUserId}:${languageId || "all"}`
     const cached = await cacheGet(cacheKey)
 
     if (cached) return cached
 
     const vocabulary = await db.userVocabulary.findMany({
       where: {
-        userId,
+        userId: processedUserId,
         ...(languageId && { word: { languageId } }),
       },
       include: { word: true },
@@ -195,7 +214,8 @@ export class DataService {
 
   // Analytics Methods
   static async getAnalytics(userId: string, timeframe = "week") {
-    const cacheKey = `analytics:${userId}:${timeframe}`
+    const processedUserId = processUserId(userId);
+    const cacheKey = `analytics:${processedUserId}:${timeframe}`
     const cached = await cacheGet(cacheKey)
 
     if (cached) return cached
@@ -205,16 +225,16 @@ export class DataService {
     startDate.setDate(startDate.getDate() - days)
 
     const [progress, sessions, achievements] = await Promise.all([
-      this.getUserProgress(userId, days),
+      this.getUserProgress(processedUserId, days),
       db.studySession.findMany({
         where: {
-          userId,
+          userId: processedUserId,
           createdAt: { gte: startDate },
         },
       }),
       db.userAchievement.findMany({
         where: {
-          userId,
+          userId: processedUserId,
           earnedAt: { gte: startDate },
         },
         include: { achievement: true },
@@ -231,14 +251,16 @@ export class DataService {
       }, 0),
       sessionsCompleted: sessions.filter((s) => s.status === "completed").length,
       achievementsEarned: achievements.length,
-      progressByMode: progress.reduce(
-        (acc, p) => {
-          if (!acc[p.learningMode]) acc[p.learningMode] = 0
-          acc[p.learningMode] += Number(p.metricValue)
-          return acc
-        },
-        {} as Record<string, number>,
-      ),
+      progressByMode: Array.isArray(progress) 
+        ? progress.reduce(
+            (acc: Record<string, number>, p: any) => {
+              if (!acc[p.learningMode]) acc[p.learningMode] = 0
+              acc[p.learningMode] += Number(p.metricValue)
+              return acc
+            },
+            {} as Record<string, number>,
+          )
+        : {},
     }
 
     await cacheSet(cacheKey, analytics, 300)

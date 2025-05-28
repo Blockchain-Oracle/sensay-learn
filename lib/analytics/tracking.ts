@@ -1,5 +1,14 @@
 import { db } from "@/lib/db"
 
+// Helper function to process Privy IDs for database compatibility
+function processUserId(userId: string): string {
+  // If it's a Privy ID (starts with did:privy:), extract just the unique part
+  if (userId && userId.startsWith("did:privy:")) {
+    return userId.split("did:privy:")[1];
+  }
+  return userId;
+}
+
 export function trackEvent(name: string, properties?: Record<string, any>) {
   if (typeof window !== "undefined") {
     // Track with Vercel Analytics
@@ -18,10 +27,12 @@ export function trackEvent(name: string, properties?: Record<string, any>) {
 
 export async function trackUserProgress(userId: string, learningMode: string, metricName: string, metricValue: number) {
   try {
+    const processedUserId = processUserId(userId);
+    
     await db.userProgress.upsert({
       where: {
         userId_learningMode_metricName_date: {
-          userId,
+          userId: processedUserId,
           learningMode,
           metricName,
           date: new Date(),
@@ -31,7 +42,7 @@ export async function trackUserProgress(userId: string, learningMode: string, me
         metricValue,
       },
       create: {
-        userId,
+        userId: processedUserId,
         learningMode,
         metricName,
         metricValue,

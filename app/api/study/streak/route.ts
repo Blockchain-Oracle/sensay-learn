@@ -2,6 +2,15 @@ import { type NextRequest, NextResponse } from "next/server"
 import { updateStudyStreak } from "@/lib/cache/upstash-redis"
 import { db } from "@/lib/db"
 
+// Helper function to process Privy IDs for database compatibility
+function processUserId(userId: string): string {
+  // If it's a Privy ID (starts with did:privy:), extract just the unique part
+  if (userId && userId.startsWith("did:privy:")) {
+    return userId.split("did:privy:")[1];
+  }
+  return userId;
+}
+
 export async function POST(request: NextRequest) {
   try {
     const userId = request.headers.get("x-user-id")
@@ -9,16 +18,18 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
+    const processedUserId = processUserId(userId);
+    
     const { learningMode, sessionDuration } = await request.json()
 
     // Update study streak in Redis
-    const newStreak = await updateStudyStreak(userId)
+    const newStreak = await updateStudyStreak(processedUserId)
 
     // Track progress in database
     await db.userProgress.upsert({
       where: {
         userId_learningMode_metricName_date: {
-          userId,
+          userId: processedUserId,
           learningMode: learningMode || "general",
           metricName: "study_streak",
           date: new Date(),
@@ -28,7 +39,7 @@ export async function POST(request: NextRequest) {
         metricValue: newStreak,
       },
       create: {
-        userId,
+        userId: processedUserId,
         learningMode: learningMode || "general",
         metricName: "study_streak",
         metricValue: newStreak,
@@ -47,13 +58,13 @@ export async function POST(request: NextRequest) {
         await db.userAchievement.upsert({
           where: {
             userId_achievementId: {
-              userId,
+              userId: processedUserId,
               achievementId: achievement.id,
             },
           },
           update: {},
           create: {
-            userId,
+            userId: processedUserId,
             achievementId: achievement.id,
           },
         })

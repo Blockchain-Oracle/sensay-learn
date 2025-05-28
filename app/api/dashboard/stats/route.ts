@@ -2,6 +2,15 @@ import { type NextRequest, NextResponse } from "next/server"
 import { getUserSession, getLeaderboard } from "@/lib/cache/upstash-redis"
 import { db } from "@/lib/db"
 
+// Helper function to process Privy IDs for database compatibility
+function processUserId(userId: string): string {
+  // If it's a Privy ID (starts with did:privy:), extract just the unique part
+  if (userId && userId.startsWith("did:privy:")) {
+    return userId.split("did:privy:")[1];
+  }
+  return userId;
+}
+
 export async function GET(request: NextRequest) {
   try {
     const userId = request.headers.get("x-user-id")
@@ -9,13 +18,16 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
+    // Process the userId to handle Privy ID format
+    const processedUserId = processUserId(userId);
+
     // Get cached session data
-    const sessionData = await getUserSession(userId)
+    const sessionData = await getUserSession(processedUserId)
 
     // Get study streak from database
     const streakProgress = await db.userProgress.findFirst({
       where: {
-        userId,
+        userId: processedUserId,
         metricName: "study_streak",
         date: new Date(),
       },
@@ -25,7 +37,7 @@ export async function GET(request: NextRequest) {
     // Get total sessions
     const totalSessions = await db.userProgress.aggregate({
       where: {
-        userId,
+        userId: processedUserId,
         metricName: "sessions_completed",
       },
       _sum: {
@@ -39,7 +51,7 @@ export async function GET(request: NextRequest) {
 
     const weeklyProgress = await db.userProgress.aggregate({
       where: {
-        userId,
+        userId: processedUserId,
         metricName: "time_spent",
         date: {
           gte: weekStart,
@@ -52,11 +64,11 @@ export async function GET(request: NextRequest) {
 
     // Get leaderboard position
     const leaderboard = await getLeaderboard("overall", 100)
-    const userRank = leaderboard.findIndex((entry) => entry.userId === userId) + 1
+    const userRank = leaderboard.findIndex((entry) => entry.userId === processedUserId) + 1
 
     // Get recent achievements
     const recentAchievements = await db.userAchievement.findMany({
-      where: { userId },
+      where: { userId: processedUserId },
       include: { achievement: true },
       orderBy: { earnedAt: "desc" },
       take: 3,
