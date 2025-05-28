@@ -8,9 +8,6 @@
     "start": "next start",
     "lint": "next lint"
   },
-  "engines": {
-    "node": ">=22.0.0"
-  },
   "dependencies": {
     "@abstract-foundation/agw-client": "latest",
     "@aws-sdk/client-s3": "latest",

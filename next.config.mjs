@@ -7,7 +7,7 @@ const nextConfig = {
     ignoreBuildErrors: true,
   },
   experimental: {
-    serverExternalPackages: ['@prisma/client', 'prisma'],
+    // Removing serverExternalPackages as it's unsupported in Next.js 15.2.4
   },
   images: {
     domains: [
@@ -16,6 +16,14 @@ const nextConfig = {
     ].filter(Boolean),
     formats: ['image/webp', 'image/avif'],
     unoptimized: true,
+  },
+  webpack: (config) => {
+    // Properly handle JSON files
+    config.module.rules.push({
+      test: /\.json$/,
+      type: 'json',
+    });
+    return config;
   },
   async headers() {
     return [

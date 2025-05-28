@@ -1,6 +1,29 @@
 # Sensay Learn - AI-Powered Learning Platform
 
-A comprehensive educational platform featuring 10 AI-driven learning modes, from coding tutorials to language learning and virtual science experiments.
+[![Sensay Hackathon](https://img.shields.io/badge/Sensay-Hackathon-blue)](https://dorahacks.io/hackathon/sensay-hackathon/buidl)
+[![Next.js](https://img.shields.io/badge/Next.js-15.2.4-black)](https://nextjs.org/)
+[![React](https://img.shields.io/badge/React-19-blue)](https://react.dev/)
+[![Sensay API](https://img.shields.io/badge/Sensay-API-purple)](https://sensay.ai/)
+[![Prisma](https://img.shields.io/badge/Prisma-Latest-cyan)](https://www.prisma.io/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5-blue)](https://www.typescriptlang.org/)
+
+A comprehensive educational platform featuring 10 AI-driven learning modes powered by the Sensay API, providing personalized learning experiences across various disciplines.
+
+[View Demo](https://sensay-learn.vercel.app) | [GitHub Repository](https://github.com/Blockchain-Oracle/sensay-learn.git) | [Hackathon Submission](https://dorahacks.io/hackathon/sensay-hackathon/buidl)
+
+![Sensay Learn Platform](/public/screenshots/platform-overview.png)
+
+## 📑 Table of Contents
+
+- [Features](#-features)
+- [Tech Stack](#%EF%B8%8F-tech-stack)
+- [Architecture](#-architecture)
+- [Getting Started](#-getting-started)
+- [Learning Modules](#-learning-modules)
+- [Sensay API Integration](#-sensay-api-integration)
+- [Screenshots](#-screenshots)
+- [Contributing](#-contributing)
+- [License](#-license)
 
 ## 🚀 Features
 
@@ -17,242 +40,212 @@ A comprehensive educational platform featuring 10 AI-driven learning modes, from
 
 ## 🛠️ Tech Stack
 
-- **Frontend**: Next.js 15, React 18, TypeScript, Tailwind CSS
-- **Backend**: Next.js API Routes, Prisma ORM
-- **Database**: PostgreSQL
-- **Authentication**: Privy
-- **AI**: OpenAI GPT-4, AI SDK
-- **Storage**: AWS S3, CloudFront CDN
-- **Cache**: Redis
-- **Deployment**: Vercel
-- **Analytics**: Vercel Analytics
+- **Frontend**:
+  - Next.js 15.2.4
+  - React 19
+  - TypeScript 5
+  - Tailwind CSS
+  - Radix UI Components
+  - React Three Fiber (3D visualizations)
+  - D3.js (Data visualizations)
+  - CodeMirror (Code editor)
 
-## 📋 Prerequisites
+- **Backend**:
+  - Next.js API Routes
+  - Prisma ORM
+  - PostgreSQL
 
-- Node.js 18+ 
+- **AI Integration**:
+  - Sensay API (Primary AI provider)
+  - Multiple LLM model support
+
+- **Authentication**:
+  - Privy Authentication
+
+- **Storage & Infrastructure**:
+  - AWS S3
+  - Redis
+  - Docker
+
+## 🏗 Architecture
+
+The application follows a modern architecture with several key components:
+
+![Architecture Diagram](/public/screenshots/architecture-diagram.png)
+
+### Core Components
+
+1. **Frontend Layer**
+   - Next.js App Router for page routing
+   - React components for UI
+   - TailwindCSS for styling
+   - Client-side state management
+
+2. **API Layer**
+   - RESTful API endpoints via Next.js API Routes
+   - Real-time communication
+
+3. **AI Layer**
+   - Sensay API integration for AI capabilities
+   - Custom prompt engineering
+   - Context management for personalized experiences
+
+4. **Data Layer**
+   - PostgreSQL database with Prisma ORM
+   - Redis caching for performance
+   - AWS S3 for file storage
+
+5. **Authentication Layer**
+   - Privy authentication service
+   - User management and profiles
+
+### Data Flow
+
+1. User requests are handled by Next.js routing
+2. API routes process requests and communicate with Sensay API
+3. Sensay API generates AI responses based on user context
+4. Data is stored and retrieved from the database via Prisma
+5. Responses are sent back to the client for rendering
+
+## 🚦 Getting Started
+
+### Prerequisites
+
+- Node.js 22.0.0 or higher
 - PostgreSQL 15+
 - Redis 7+
 - AWS Account (for S3 storage)
 - Privy Account (for authentication)
-- OpenAI API Key
+- Sensay API Key
 
-## 🔧 Installation
+### Installation
 
 1. **Clone the repository**
-   \`\`\`bash
-   git clone https://github.com/your-org/sensay-learn.git
+   ```bash
+   git clone https://github.com/Blockchain-Oracle/sensay-learn.git
    cd sensay-learn
-   \`\`\`
+   ```
 
 2. **Install dependencies**
-   \`\`\`bash
+   ```bash
    npm install
-   \`\`\`
+   # or
+   pnpm install
+   ```
 
 3. **Set up environment variables**
-   \`\`\`bash
+   ```bash
    cp .env.example .env
-   \`\`\`
+   ```
    Fill in your environment variables in `.env`
 
 4. **Set up the database**
-   \`\`\`bash
+   ```bash
    npx prisma generate
    npx prisma migrate dev
-   npx prisma db seed
-   \`\`\`
+   ```
 
 5. **Start the development server**
-   \`\`\`bash
+   ```bash
    npm run dev
-   \`\`\`
+   # or
+   pnpm dev
+   ```
 
-## 🐳 Docker Development
+### Docker Development
 
 1. **Start with Docker Compose**
-   \`\`\`bash
+   ```bash
    docker-compose up -d
-   \`\`\`
+   ```
 
 2. **Run database migrations**
-   \`\`\`bash
+   ```bash
    docker-compose exec app npx prisma migrate dev
-   docker-compose exec app npx prisma db seed
-   \`\`\`
+   ```
 
-## 🚀 Deployment
+## 🧠 Learning Modules
 
-### Vercel (Recommended)
+The platform offers 10 specialized learning modules:
 
-1. **Connect your repository to Vercel**
-2. **Set environment variables in Vercel dashboard**
-3. **Deploy automatically on push to main branch**
+### 1. AI Mentor
+Personalized guidance with adaptive learning paths based on user progress and goals.
 
-### Manual Deployment
+### 2. Coding Tutor
+Interactive programming environment with real-time code execution, feedback, and challenges across multiple languages.
 
-1. **Build the application**
-   \`\`\`bash
-   npm run build
-   \`\`\`
+### 3. Mindfulness Coach
+Guided meditation, stress management techniques, and emotional well-being exercises.
 
-2. **Start production server**
-   \`\`\`bash
-   npm start
-   \`\`\`
+### 4. Debate Coach
+Critical thinking development, argument structure, and persuasive communication training.
 
-## 📊 Database Schema
+### 5. Historical Figures
+Conversations with AI representations of famous historical personalities for immersive learning.
 
-The application uses a comprehensive PostgreSQL schema with the following main entities:
+### 6. Adaptive Learning
+Specialized education tools for learners with different needs and learning styles.
 
-- **Users & Authentication** - User profiles, preferences, learning profiles
-- **Study Buddy** - Sessions, goals, documents, concept maps, study groups
-- **Science Lab** - Experiments, sessions, data collection, lab reports
-- **Language Coach** - Languages, vocabulary, conversations, cultural insights
-- **Shared** - Chat conversations, progress tracking, media files, achievements
+### 7. Career Simulation
+Job interview preparation, workplace scenario training, and professional development.
 
-## 🔐 Authentication Flow
+### 8. Study Buddy
+Study planning, progress tracking, and active recall techniques to enhance learning efficiency.
 
-1. User visits protected route
-2. Middleware checks for Privy token
-3. Token verified with Privy
-4. User synced with local database
-5. Learning profiles created for new users
+### 9. Virtual Science Lab
+Interactive 3D experiments across chemistry, physics, and biology with real-time data visualization.
 
-## 📈 Performance Optimizations
+### 10. Language Coach
+Immersive language learning with conversation practice, cultural context, and personalized feedback.
 
-- **Caching**: Redis for API responses and session data
-- **CDN**: CloudFront for static assets and uploads
-- **Database**: Optimized indexes and query patterns
-- **Rate Limiting**: API protection against abuse
-- **Image Optimization**: Next.js Image component with WebP/AVIF
+## 🤖 Sensay API Integration
 
-## 🔒 Security Features
+This project uses the Sensay API as the primary AI provider, replacing the previous OpenAI implementation. Key integration points:
 
-- **Authentication**: Privy-based secure authentication
-- **Authorization**: Route-level protection with middleware
-- **Rate Limiting**: API endpoint protection
-- **File Upload**: Type and size validation
-- **Headers**: Security headers for XSS, CSRF protection
-- **Environment**: Secure environment variable handling
+### Features
+- User identification and context management
+- Replica management for personalized experiences
+- Support for multiple LLM models
+- Fallback mechanisms for reliability
 
-## 🧪 Testing
+### Supported Models
+- "gpt-4o" 
+- "claude-3-5-haiku-latest" 
+- "claude-3-7-sonnet-latest" 
+- "claude-4-sonnet-20250514" 
+- "grok-2-latest" 
+- "grok-3-beta" 
+- "deepseek-chat" 
+- "o3-mini" 
+- "gpt-4o-mini" 
+- "huggingface-eva" 
+- "huggingface-dolphin-llama"
 
-\`\`\`bash
-# Run type checking
-npm run type-check
+For more details, see [SENSAY_INTEGRATION.md](./SENSAY_INTEGRATION.md)
 
-# Run linting
-npm run lint
+## 📸 Screenshots
 
-# Run tests (when implemented)
-npm test
-\`\`\`
-
-## 📝 API Documentation
-
-### Authentication
-- All protected routes require valid Privy token
-- User ID passed via `x-user-id` header
-
-### Main Endpoints
-- `POST /api/chat` - AI chat interactions
-- `POST /api/upload` - File uploads to S3
-- `GET/PUT /api/user/profile` - User profile management
-- `POST /api/analytics/track` - Event tracking
+| Module | Screenshot |
+|--------|------------|
+| AI Mentor | ![AI Mentor](/public/screenshots/ai-mentor.png) |
+| Coding Tutor | ![Coding Tutor](/public/screenshots/coding-tutor.png) |
+| Science Lab | ![Science Lab](/public/screenshots/science-lab.png) |
+| Language Coach | ![Language Coach](/public/screenshots/language-coach.png) |
 
 ## 🤝 Contributing
 
+We welcome contributions to Sensay Learn!
+
 1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests if applicable
-5. Submit a pull request
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
 ## 📄 License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
 
-## 🆘 Support
+---
 
-For support, email support@sensaylearn.com or open an issue on GitHub.
-
-## Science Lab 3D Visualizations
-
-We've integrated interactive 3D visualizations into our virtual science lab, allowing learners to engage with scientific experiments in a more intuitive and immersive way. The visualizations are powered by Three.js and React Three Fiber, making it possible to:
-
-- View and interact with realistic 3D models of scientific experiments
-- Observe physical and chemical changes in real-time
-- Manipulate variables and see their effects on the experiment
-- Rotate and explore 3D scenes from different angles
-
-## Dynamic Data Visualizations
-
-The application also features dynamic data visualization powered by D3.js. This allows learners to:
-
-- View real-time data from experiments in graphical form
-- Analyze relationships between variables
-- Observe trends and patterns in experimental data
-- Compare results across different experiments
-
-## Implemented Experiments
-
-The following experiments are currently available with 3D visualizations:
-
-1. **Acid-Base Titration** - Observe color changes and pH shifts during titration
-2. **Simple Pendulum** - Study oscillation patterns and measure periods
-3. **Photosynthesis Rate** - Visualize oxygen production in plants under various conditions
-4. **Density Determination** - Compare floating and sinking behaviors of different materials
-
-## Development
-
-This project uses:
-
-- Next.js as the React framework
-- Three.js and React Three Fiber for 3D visualizations
-- D3.js for data visualization
-- Tailwind CSS for styling
-- TypeScript for type safety
-
-### Getting Started
-
-1. Clone the repository
-2. Install dependencies with pnpm:
-
-```bash
-pnpm install
-```
-
-3. Run the development server:
-
-```bash
-pnpm dev
-```
-
-4. Open [http://localhost:3000](http://localhost:3000) in your browser to see the result.
-
-### Directory Structure
-
-- `/app` - Next.js app router components
-- `/components` - Reusable React components
-  - `/components/study-buddy` - Components specific to the learning features
-- `/lib` - Utility functions and hooks
-- `/public` - Static assets including 3D models
-
-This comprehensive setup provides a production-ready Sensay Learn application with:
-
-✅ **Complete database schema** with all learning modules
-✅ **Privy authentication** with user sync
-✅ **AWS S3 file storage** with CDN support
-✅ **Redis caching** for performance
-✅ **Rate limiting** for API protection
-✅ **AI integration** with OpenAI
-✅ **Analytics tracking** for user behavior
-✅ **Docker support** for development
-✅ **Vercel deployment** configuration
-✅ **GitHub Actions** CI/CD pipeline
-✅ **Security headers** and middleware
-✅ **Comprehensive error handling**
-✅ **TypeScript** throughout
-✅ **Performance optimizations**
-
-The application is now ready for production deployment with proper scalability, security, and monitoring in place.
+Built for the [Sensay Hackathon](https://dorahacks.io/hackathon/sensay-hackathon/buidl) | [GitHub Repository](https://github.com/Blockchain-Oracle/sensay-learn.git)
