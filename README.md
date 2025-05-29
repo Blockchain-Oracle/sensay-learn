@@ -13,7 +13,12 @@ A comprehensive educational platform featuring 10 AI-driven learning modes power
 
 ![Sensay Learn Platform](/public/screenshots/platform-overview.png)
 
-## 📑 Table of Contents
+## 📹 Demo Video
+
+[![Sensay Learn Demo Video](https://img.youtube.com/vi/Lwi0Vy6bD1c/0.jpg)](https://www.youtube.com/watch?v=Lwi0Vy6bD1c)
+*Click the image above to watch the demo video on YouTube*
+
+## �� Table of Contents
 
 - [Features](#-features)
 - [Tech Stack](#%EF%B8%8F-tech-stack)
