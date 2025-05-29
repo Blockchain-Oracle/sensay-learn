@@ -6,9 +6,7 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
-  experimental: {
-    serverComponentsExternalPackages: ['@abstract-foundation/agw-client', 'cheerio'],
-  },
+  serverExternalPackages: ['@abstract-foundation/agw-client', 'cheerio'],
   images: {
     domains: [
       'sensay-learn-uploads.s3.amazonaws.com',
