@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
     const processedUserId = processUserId(userId);
 
     // Rate limiting
-    const { success } = await checkRateLimit(`progress:${userId}`, 20, 3600)
+    const { success } = await checkRateLimit(`progress:${processedUserId}`, 20, 3600)
     if (!success) {
       return NextResponse.json({ error: "Rate limit exceeded" }, { status: 429 })
     }

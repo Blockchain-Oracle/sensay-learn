@@ -7,7 +7,7 @@ const nextConfig = {
     ignoreBuildErrors: true,
   },
   experimental: {
-    // Removing serverExternalPackages as it's unsupported in Next.js 15.2.4
+    serverComponentsExternalPackages: ['@abstract-foundation/agw-client', 'cheerio'],
   },
   images: {
     domains: [

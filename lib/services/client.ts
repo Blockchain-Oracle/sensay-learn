@@ -67,7 +67,7 @@ export class ClientScrapingService {
   static async getEducationalContent(
     topic: string,
     maxResults = 5,
-    userId?: string
+    userId: string
   ): Promise<ScrapedContent[]> {
     try {
       const headers: HeadersInit = {

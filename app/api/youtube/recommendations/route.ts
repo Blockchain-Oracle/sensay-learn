@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
     // Rate limiting (allow anonymous users but with stricter limits)
     const identifier = processedUserId || request.headers.get("x-forwarded-for") || "anonymous"
     const { success, remaining } = await checkRateLimit(
-      `youtube:${identifier}`,
+      `youtube:${processedUserId}`,
       userId ? 30 : 10, // 30 requests for authenticated users, 10 for anonymous
       3600,
     )

@@ -10,7 +10,7 @@ import { BookOpen, Clock, ExternalLink, RefreshCw, Lightbulb } from "lucide-reac
 interface EducationalContentProps {
   topic: string
   maxResults?: number
-  userId?: string
+  userId: string
 }
 
 export function EducationalContent({ topic, maxResults = 5, userId }: EducationalContentProps) {

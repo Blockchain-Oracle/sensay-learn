@@ -116,7 +116,7 @@ export function useYouTubeRecommendations(topic: string, learningMode: string, u
 }
 
 // Educational Content Hook
-export function useEducationalContent(topic: string, userId?: string) {
+export function useEducationalContent(topic: string, userId: string) {
   const [content, setContent] = useState<ScrapedContent[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
