@@ -9,7 +9,7 @@
 
 A comprehensive educational platform featuring 10 AI-driven learning modes powered by the Sensay API, providing personalized learning experiences across various disciplines.
 
-[View Demo](https://sensay-learn.vercel.app) | [GitHub Repository](https://github.com/Blockchain-Oracle/sensay-learn.git) | [Hackathon Submission](https://dorahacks.io/hackathon/sensay-hackathon/buidl)
+[View Demo](https://sensay-learn.vercel.app) | [Demo Video](https://www.tella.tv/video/introducing-sensaylearn-1-07id) | [GitHub Repository](https://github.com/Blockchain-Oracle/sensay-learn.git) | [Hackathon Submission](https://dorahacks.io/buidl/26616)
 
 ![Sensay Learn Platform](/public/screenshots/platform-overview.png)
 
@@ -249,4 +249,4 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ---
 
-Built for the [Sensay Hackathon](https://dorahacks.io/hackathon/sensay-hackathon/buidl) | [GitHub Repository](https://github.com/Blockchain-Oracle/sensay-learn.git)
+Built for the [Sensay Hackathon](https://dorahacks.io/hackathon/sensay-hackathon/buidl) | [Project Submission](https://dorahacks.io/buidl/26616) | [GitHub Repository](https://github.com/Blockchain-Oracle/sensay-learn.git)
