@@ -5,6 +5,7 @@ import "./globals.css"
 import Providers from "./providers"
 import { Analytics } from "@vercel/analytics/react"
 import { Suspense } from "react"
+import MobileRedirect from "@/components/mobile-redirect"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -39,8 +40,10 @@ export default function RootLayout({
       <body className={inter.className}>
         <Suspense fallback={<p>Loading...</p>}>
           <Providers>
-            {children}
-            <Analytics />
+            <MobileRedirect>
+              {children}
+              <Analytics />
+            </MobileRedirect>
           </Providers>
         </Suspense>
       </body>
