@@ -9,9 +9,10 @@ Please add the following screenshots to this directory:
 1. `platform-overview.png` - A screenshot of the main dashboard or landing page
 2. `ai-mentor.png` - A screenshot of the AI Mentor learning module
 3. `coding-tutor.png` - A screenshot of the Coding Tutor learning module
-4. `science-lab.png` - A screenshot of the Virtual Science Lab learning module
-5. `language-coach.png` - A screenshot of the Language Coach learning module
-6. `architecture-diagram.png` - A diagram showing the application architecture
+4. `debate-coach.png` - A screenshot of the Debate Coach learning module
+5. `science-lab.png` - A screenshot of the Virtual Science Lab learning module
+6. `language-coach.png` - A screenshot of the Language Coach learning module
+7. `architecture-diagram.png` - A diagram showing the application architecture
 
 ## Adding Screenshots
 

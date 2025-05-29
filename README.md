@@ -229,6 +229,7 @@ For more details, see [SENSAY_INTEGRATION.md](./SENSAY_INTEGRATION.md)
 |--------|------------|
 | AI Mentor | ![AI Mentor](/public/screenshots/ai-mentor.png) |
 | Coding Tutor | ![Coding Tutor](/public/screenshots/coding-tutor.png) |
+| Debate Coach | ![Debate Coach](/public/screenshots/debate-coach.png) |
 | Science Lab | ![Science Lab](/public/screenshots/science-lab.png) |
 | Language Coach | ![Language Coach](/public/screenshots/language-coach.png) |
 

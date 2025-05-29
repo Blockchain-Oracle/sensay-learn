@@ -27,7 +27,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
         appearance: {
           theme: "light",
           accentColor: "#8B5CF6",
-          logo: "/logo.png",
+          logo: "/screenshots/platform-overview.png",
           landingHeader: "Welcome to Sensay Learn",
           showWalletLoginFirst: false,
         },
